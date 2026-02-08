@@ -11,6 +11,7 @@ const participantSchema = new mongoose.Schema(
     },
     arrivalTime: { type: Date, required: false },
     extraGuests: { type: Number, required: true, default: 0 },
+    isPlaying: { type: Boolean, required: true, default: true },
     registeredAt: { type: Date, required: true, default: Date.now },
   },
   { _id: false }
@@ -19,7 +20,14 @@ const participantSchema = new mongoose.Schema(
 const clubSessionSchema = new mongoose.Schema(
   {
     date: { type: Date, required: true },
-    time: { type: String, required: true }, // e.g. "19:00"
+    startTime: { type: String, required: true }, // e.g. "19:00"
+    endTime: { type: String, required: false }, // e.g. "22:30"
+    location: {
+      type: String,
+      required: true,
+      enum: ["entrance", "conference"],
+      default: "entrance",
+    },
     capacity: { type: Number, required: true },
     participants: { type: [participantSchema], required: true, default: [] },
   },
