@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema(
   {
     discordId: { type: String, required: false },
     name: { type: String, required: true },
+    firstName: { type: String, required: false },
+    lastName: { type: String, required: false },
     majsoulIdentity: { type: majsoulIdentitySchema, required: false },
     tenhouIdentity: { type: tenhouIdentitySchema, required: false },
     riichiCityIdentity: { type: riichiCityIdentitySchema, required: false },
@@ -46,6 +48,7 @@ const userSchema = new mongoose.Schema(
     },
     lastLogin: { type: Date, required: false },
     avatarUrl: { type: String, required: false },
+    locale: { type: String, required: false, default: "en" },
     verificationToken: {
       type: String,
       required: false,
