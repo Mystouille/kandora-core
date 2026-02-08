@@ -57,6 +57,14 @@ const userSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    passwordResetToken: {
+      type: String,
+      required: false,
+    },
+    passwordResetTokenExpires: {
+      type: Date,
+      required: false,
+    },
     isAdmin: { type: Boolean, required: true, default: false },
   },
   {
