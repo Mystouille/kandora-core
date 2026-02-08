@@ -44,8 +44,8 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    avatar: { type: String, required: false },
     lastLogin: { type: Date, required: false },
+    avatarUrl: { type: String, required: false },
     verificationToken: {
       type: String,
       required: false,
@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    isAdmin: { type: Boolean, required: true, default: false },
   },
   {
     methods: {},
