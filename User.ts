@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema(
     },
     lastLogin: { type: Date, required: false },
     avatarUrl: { type: String, required: false },
+    lastKnownDiscordName: { type: String, required: false },
     locale: { type: String, required: false, default: "en" },
     verificationToken: {
       type: String,
