@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Han } from "~/types/Han";
 
 export const GameRecordModelName = "GameRecord";
 
@@ -10,7 +11,13 @@ const roundEventSchema = new mongoose.Schema(
     wasOpened: { type: Boolean, required: true },
     numberOfCalls: { type: Number, required: true },
     kanNumber: { type: Number, required: true },
-    yakus: [{ type: Number, required: true }],
+    yakus: [
+      {
+        type: Number,
+        enum: Object.values(Han).filter((v) => typeof v === "number"),
+        required: true,
+      },
+    ],
     hasRiichi: { type: Boolean, required: true },
     firstTenpaiTurn: { type: Number, required: true },
     finishedTenpai: { type: Boolean, required: true },
