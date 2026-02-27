@@ -12,6 +12,12 @@ const participantSchema = new mongoose.Schema(
     arrivalTime: { type: Date, required: false },
     extraGuests: { type: Number, required: true, default: 0 },
     isPlaying: { type: Boolean, required: true, default: true },
+    status: {
+      type: String,
+      required: true,
+      enum: ["registered", "interested"],
+      default: "registered",
+    },
     registeredAt: { type: Date, required: true, default: Date.now },
   },
   { _id: false }
@@ -29,6 +35,7 @@ const clubSessionSchema = new mongoose.Schema(
       default: "entrance",
     },
     capacity: { type: Number, required: true },
+    isPotential: { type: Boolean, required: true, default: false },
     participants: { type: [participantSchema], required: true, default: [] },
   },
   {
