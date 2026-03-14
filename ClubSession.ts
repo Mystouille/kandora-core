@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { SessionLocation } from "../types/SessionLocation";
 
 export const ClubSessionModelName = "ClubSession";
 
@@ -31,8 +32,7 @@ const clubSessionSchema = new mongoose.Schema(
     location: {
       type: String,
       required: true,
-      enum: ["entrance", "conference"],
-      default: "entrance",
+      default: SessionLocation.Entrance,
     },
     capacity: { type: Number, required: true },
     isPotential: { type: Boolean, required: true, default: false },
