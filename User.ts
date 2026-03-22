@@ -92,11 +92,15 @@ const userSchema = new mongoose.Schema(
           // User is not in a team, so they can play
           return false;
         }
-        // Count games played by the team in this league
+        // Count games played by the team in this league (members + substitutes)
+        const allTeamPlayerIds = [
+          ...userTeam.members,
+          ...(userTeam.substitutes ?? []),
+        ];
         const teamGamesCount = await GameModel.countDocuments({
           league: leagueId,
           users: {
-            $in: userTeam.members,
+            $in: allTeamPlayerIds,
           },
         });
 

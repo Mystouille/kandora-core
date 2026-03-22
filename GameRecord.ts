@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Han } from "~/types/Han";
+import { Han } from "../api/majsoul/data/enums";
 
 export const GameRecordModelName = "GameRecord";
 

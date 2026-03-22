@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { TeamModelName } from "./Team";
+import { GameRecordModelName } from "./GameRecord";
 
 export const GameModelName = "Game";
 const resultSchema = new mongoose.Schema(
@@ -38,6 +39,12 @@ const gameSchema = new mongoose.Schema(
     league: { type: mongoose.Schema.Types.ObjectId, required: false },
     platformIndex: { type: Number, required: false },
     isPublished: { type: Boolean, required: false, default: false },
+    gameRecord: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: GameRecordModelName,
+      required: false,
+    },
+    blockGameRecord: { type: Boolean, required: false, default: false },
   },
   {
     virtuals: {
