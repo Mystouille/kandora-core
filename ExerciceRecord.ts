@@ -17,11 +17,10 @@ const exerciceRecordSchema = new mongoose.Schema(
     },
     difficulty: {
       type: String,
-      enum: ["easy", "medium", "hard"],
       required: true,
     },
     question: { type: String, required: true },
-    answer: { type: [Number], required: true },
+    answer: { type: [String], required: true },
     attempts: { type: Number, required: true, default: 0 },
     wrongAttempts: { type: Number, required: true, default: 0 },
   },
