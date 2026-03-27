@@ -48,6 +48,7 @@ const leagueSchema = new mongoose.Schema({
     enum: Object.values(LeagueConfig),
     required: false,
   },
+  serverId: { type: String, required: true },
   adminChannel: { type: String, required: true },
   gameChannel: { type: String, required: true },
   rankingChannel: { type: String, required: false },
