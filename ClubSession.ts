@@ -10,7 +10,7 @@ const participantSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    arrivalTime: { type: Date, required: false },
+    arrivalTime: { type: String, required: false },
     extraGuests: { type: Number, required: true, default: 0 },
     isPlaying: { type: Boolean, required: true, default: true },
     status: {
