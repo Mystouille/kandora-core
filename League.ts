@@ -65,6 +65,7 @@ const leagueSchema = new mongoose.Schema({
   gameChannel: { type: String, required: true },
   rankingChannel: { type: String, required: false },
   tournamentId: { type: String, required: false },
+  internalTournamentId: { type: String, required: false },
 });
 
 export const LeagueModel = mongoose.model(LeagueModelName, leagueSchema);
