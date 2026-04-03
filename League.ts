@@ -16,6 +16,13 @@ export enum Platform {
 export enum LeagueConfig {
   LFCR = "LFCR",
   LFCR_FINAL = "LFCR_FINAL",
+  TRI_KINDOM_TILES = "TRI_KINDOM_TILES",
+  TRI_KINDOM_TILES_FINAL = "TRI_KINDOM_TILES_FINAL",
+}
+
+export enum LeagueScoringMode {
+  TEAM_BASED = "TEAM_BASED",
+  NON_TEAM_BASED = "NON_TEAM_BASED",
 }
 
 const rulesetList = [Ruleset.EMA, Ruleset.WRC, Ruleset.ONLINE, Ruleset.MLEAGUE];
@@ -32,7 +39,6 @@ const leagueSchema = new mongoose.Schema({
   endTime: { type: Date, required: false },
   isOngoing: { type: Boolean, required: true, default: true },
   hasTeams: { type: Boolean, required: true, default: false },
-  isEliminationBracket: { type: Boolean, required: true, default: false },
   rules: {
     type: String,
     enum: rulesetList,
@@ -47,6 +53,12 @@ const leagueSchema = new mongoose.Schema({
     type: String,
     enum: Object.values(LeagueConfig),
     required: false,
+  },
+  scoringMode: {
+    type: String,
+    enum: Object.values(LeagueScoringMode),
+    required: false,
+    default: LeagueScoringMode.TEAM_BASED,
   },
   serverId: { type: String, required: true },
   adminChannel: { type: String, required: true },
