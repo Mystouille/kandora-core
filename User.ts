@@ -131,6 +131,16 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
+userSchema.index(
+  { "majsoulIdentity.friendId": 1 },
+  { unique: true, sparse: true }
+);
+userSchema.index(
+  { "riichiCityIdentity.id": 1 },
+  { unique: true, sparse: true }
+);
+userSchema.index({ "discordIdentity.id": 1 }, { unique: true, sparse: true });
+
 export const UserModel = mongoose.model("User", userSchema);
 
 export type User = mongoose.InferSchemaType<typeof userSchema> & {
