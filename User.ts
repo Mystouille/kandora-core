@@ -23,8 +23,18 @@ const riichiCityIdentitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const discordIdentitySchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true },
+    email: { type: String, required: false },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
+    discordIdentity: { type: discordIdentitySchema, required: false },
+    // @deprecated — use discordIdentity.id instead. Kept for backward compat.
     discordId: { type: String, required: false },
     name: { type: String, required: true },
     firstName: { type: String, required: false },
