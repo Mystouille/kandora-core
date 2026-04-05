@@ -43,7 +43,6 @@ const platformList = [
 const leagueSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   startTime: { type: Date, required: true },
-  finalsCutoffTime: { type: Date, required: false },
   phaseCutoffTimes: { type: [Date], required: false, default: [] },
   endTime: { type: Date, required: false },
   isOngoing: { type: Boolean, required: true, default: true },
@@ -80,4 +79,8 @@ const leagueSchema = new mongoose.Schema({
 export const LeagueModel = mongoose.model(LeagueModelName, leagueSchema);
 export type League = mongoose.InferSchemaType<typeof leagueSchema> & {
   _id: mongoose.Types.ObjectId;
+};
+/** Plain-object variant returned by `.lean()` — no Mongoose wrappers. */
+export type LeanLeague = Omit<League, "phaseCutoffTimes"> & {
+  phaseCutoffTimes: Date[];
 };
