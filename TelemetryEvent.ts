@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 
 const telemetryEventSchema = new mongoose.Schema({
-  // "request" | "error" | "client" | "custom"
+  // "request" | "error" | "client" | "worker" | "custom"
   type: { type: String, required: true, index: true },
+  // "dev" | "prod"
+  env: { type: String, index: true },
   // HTTP method or custom action name
   method: { type: String },
   // URL path (no query string)
