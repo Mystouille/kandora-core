@@ -24,7 +24,7 @@ const gameSchema = new mongoose.Schema(
     },
     rules: {
       type: String,
-      enum: ["EMA", "WRC", "ONLINE", "MLEAGUE"],
+      enum: ["EMA", "WRC", "ONLINE", "MLEAGUE", "INDONESIAN"],
       required: true,
     },
     context: {

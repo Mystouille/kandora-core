@@ -6,6 +6,7 @@ export enum Ruleset {
   WRC = "WRC",
   ONLINE = "ONLINE",
   MLEAGUE = "MLEAGUE",
+  INDONESIAN = "INDONESIAN",
 }
 export enum Platform {
   MAJSOUL = "MAJSOUL",
@@ -18,6 +19,7 @@ export enum LeagueConfig {
   LFCR_FINAL = "LFCR_FINAL",
   TRI_KINDOM_TILES = "TRI_KINDOM_TILES",
   TRI_KINDOM_TILES_FINAL = "TRI_KINDOM_TILES_FINAL",
+  INDONESIAN = "INDONESIAN",
 }
 
 export enum LeagueScoringMode {
@@ -25,7 +27,13 @@ export enum LeagueScoringMode {
   NON_TEAM_BASED = "NON_TEAM_BASED",
 }
 
-const rulesetList = [Ruleset.EMA, Ruleset.WRC, Ruleset.ONLINE, Ruleset.MLEAGUE];
+const rulesetList = [
+  Ruleset.EMA,
+  Ruleset.WRC,
+  Ruleset.ONLINE,
+  Ruleset.MLEAGUE,
+  Ruleset.INDONESIAN,
+];
 const platformList = [
   Platform.MAJSOUL,
   Platform.TENHOU,
@@ -36,6 +44,7 @@ const leagueSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   startTime: { type: Date, required: true },
   finalsCutoffTime: { type: Date, required: false },
+  phaseCutoffTimes: { type: [Date], required: false, default: [] },
   endTime: { type: Date, required: false },
   isOngoing: { type: Boolean, required: true, default: true },
   hasTeams: { type: Boolean, required: true, default: false },
@@ -60,9 +69,9 @@ const leagueSchema = new mongoose.Schema({
     required: false,
     default: LeagueScoringMode.TEAM_BASED,
   },
-  serverId: { type: String, required: true },
-  adminChannel: { type: String, required: true },
-  gameChannel: { type: String, required: true },
+  serverId: { type: String, required: false },
+  adminChannel: { type: String, required: false },
+  gameChannel: { type: String, required: false },
   rankingChannel: { type: String, required: false },
   tournamentId: { type: String, required: false },
   internalTournamentId: { type: String, required: false },
