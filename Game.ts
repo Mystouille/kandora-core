@@ -45,6 +45,7 @@ const gameSchema = new mongoose.Schema(
       required: false,
     },
     blockGameRecord: { type: Boolean, required: false, default: false },
+    refetchGameRecord: { type: Boolean, required: false, default: false },
   },
   {
     virtuals: {

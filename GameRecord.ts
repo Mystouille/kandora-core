@@ -47,7 +47,7 @@ const userGameRecordSchema = new mongoose.Schema(
     teamDbId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Team",
-      required: true,
+      required: false,
     },
     teamName: { type: String, required: false },
     score: { type: Number, required: true },
