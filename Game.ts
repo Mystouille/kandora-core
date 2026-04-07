@@ -68,7 +68,7 @@ const gameSchema = new mongoose.Schema(
 );
 
 export const GameModel = mongoose.model(GameModelName, gameSchema);
-export type Game = mongoose.InferSchemaType<typeof gameSchema>;
+export type DbGame = mongoose.InferSchemaType<typeof gameSchema>;
 /** Sub-document type for a single game result (plain object). */
 export type GameResult = {
   userId: mongoose.Types.ObjectId;
@@ -78,7 +78,7 @@ export type GameResult = {
   subId?: mongoose.Types.ObjectId | null;
 };
 /** Plain-object variant returned by `.lean()`. */
-export type LeanGame = Omit<Game, "results"> & {
+export type Game = Omit<DbGame, "results"> & {
   _id: mongoose.Types.ObjectId;
   results: GameResult[];
 };

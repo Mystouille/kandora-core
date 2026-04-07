@@ -114,10 +114,10 @@ export const FINALS_LEAGUE_CONFIGS = [
 export function finalsLeagueFilter() {
   return { "rulesConfig.structure": { $in: [...FINALS_LEAGUE_CONFIGS] } };
 }
-export type League = mongoose.InferSchemaType<typeof leagueSchema> & {
+export type DbLeague = mongoose.InferSchemaType<typeof leagueSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 /** Plain-object variant returned by `.lean()` — no Mongoose wrappers. */
-export type LeanLeague = Omit<League, "phaseCutoffTimes"> & {
+export type League = Omit<DbLeague, "phaseCutoffTimes"> & {
   phaseCutoffTimes: Date[];
 };

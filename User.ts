@@ -143,8 +143,8 @@ userSchema.index({ "discordIdentity.id": 1 }, { unique: true, sparse: true });
 
 export const UserModel = mongoose.model("User", userSchema);
 
-export type User = mongoose.InferSchemaType<typeof userSchema> & {
+export type DbUser = mongoose.InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 /** Plain-object variant returned by `.lean()`. */
-export type LeanUser = User;
+export type User = DbUser;

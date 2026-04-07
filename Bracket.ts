@@ -23,7 +23,7 @@ const bracketSchema = new mongoose.Schema({
 });
 
 export const BracketModel = mongoose.model(BracketModelName, bracketSchema);
-export type Bracket = mongoose.InferSchemaType<typeof bracketSchema> & {
+export type DbBracket = mongoose.InferSchemaType<typeof bracketSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 /** Sub-document type for a single bracket seeding (plain object). */
@@ -32,6 +32,6 @@ export type BracketSeeding = {
   teamId: mongoose.Types.ObjectId;
 };
 /** Plain-object variant returned by `.lean()`. */
-export type LeanBracket = Omit<Bracket, "seedings"> & {
+export type Bracket = Omit<DbBracket, "seedings"> & {
   seedings: BracketSeeding[];
 };
