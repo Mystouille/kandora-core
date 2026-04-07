@@ -22,11 +22,6 @@ export enum LeagueConfig {
   INDONESIAN = "INDONESIAN",
 }
 
-export enum LeagueScoringMode {
-  TEAM_BASED = "TEAM_BASED",
-  NON_TEAM_BASED = "NON_TEAM_BASED",
-}
-
 const rulesetList = [
   Ruleset.EMA,
   Ruleset.WRC,
@@ -45,34 +40,54 @@ const leagueSchema = new mongoose.Schema({
   startTime: { type: Date, required: true },
   phaseCutoffTimes: { type: [Date], required: false, default: [] },
   endTime: { type: Date, required: true },
-  hasTeams: { type: Boolean, required: true, default: false },
-  rules: {
-    type: String,
-    enum: rulesetList,
+  isIgnored: { type: Boolean, required: true, default: false },
+  isDisplayed: { type: Boolean, required: true, default: true },
+  rulesConfig: {
+    type: new mongoose.Schema(
+      {
+        gameRules: {
+          type: String,
+          enum: rulesetList,
+          required: true,
+        },
+        structure: {
+          type: String,
+          enum: Object.values(LeagueConfig),
+          required: false,
+        },
+        isTeamMode: { type: Boolean, required: true, default: true },
+      },
+      { _id: false }
+    ),
     required: true,
   },
-  platform: {
-    type: String,
-    enum: platformList,
+  platformConfig: {
+    type: new mongoose.Schema(
+      {
+        platformName: {
+          type: String,
+          enum: platformList,
+          required: true,
+        },
+        tournamentId: { type: String, required: false },
+        internalTournamentId: { type: String, required: false },
+      },
+      { _id: false }
+    ),
     required: true,
   },
-  configuration: {
-    type: String,
-    enum: Object.values(LeagueConfig),
+  discordConfig: {
+    type: new mongoose.Schema(
+      {
+        serverId: { type: String, required: false },
+        adminChannel: { type: String, required: false },
+        resultChannel: { type: String, required: false },
+        rankingChannel: { type: String, required: false },
+      },
+      { _id: false }
+    ),
     required: false,
   },
-  scoringMode: {
-    type: String,
-    enum: Object.values(LeagueScoringMode),
-    required: false,
-    default: LeagueScoringMode.TEAM_BASED,
-  },
-  serverId: { type: String, required: false },
-  adminChannel: { type: String, required: false },
-  gameChannel: { type: String, required: false },
-  rankingChannel: { type: String, required: false },
-  tournamentId: { type: String, required: false },
-  internalTournamentId: { type: String, required: false },
 });
 
 export const LeagueModel = mongoose.model(LeagueModelName, leagueSchema);
@@ -94,6 +109,11 @@ export const FINALS_LEAGUE_CONFIGS = [
   LeagueConfig.LFCR_FINAL,
   LeagueConfig.TRI_KINDOM_TILES_FINAL,
 ] as const;
+
+/** Mongoose filter for leagues with a finals structure. */
+export function finalsLeagueFilter() {
+  return { "rulesConfig.structure": { $in: [...FINALS_LEAGUE_CONFIGS] } };
+}
 export type League = mongoose.InferSchemaType<typeof leagueSchema> & {
   _id: mongoose.Types.ObjectId;
 };
