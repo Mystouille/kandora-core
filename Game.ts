@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { TeamModelName } from "./Team";
 import { GameRecordModelName } from "./GameRecord";
 
 export const GameModelName = "Game";
@@ -50,17 +49,10 @@ const gameSchema = new mongoose.Schema(
   {
     virtuals: {
       users: {
-        get: function (this: any) {
-          return this.results.map((result: any) => result.userId);
-        },
-      },
-      teams: {
-        get: async function (this: any) {
-          const TeamModel = mongoose.model(TeamModelName);
-          const teams = await TeamModel.find({
-            members: { $in: this.users },
-          }).exec();
-          return teams;
+        get(): mongoose.Types.ObjectId[] {
+          return (this.results ?? []).map(
+            (result) => (result as unknown as GameResult).userId
+          );
         },
       },
     },
@@ -74,23 +66,6 @@ const gameSchema = new mongoose.Schema(
     },
   }
 );
-
-gameSchema.virtual("users").get(function (this: any) {
-  return this.results.map((result: any) => result.userId);
-});
-
-gameSchema.virtual("hasSameUsers").get(function (
-  this: any,
-  userIds: mongoose.Types.ObjectId[]
-) {
-  const gameUserIds = this.users.map((id: mongoose.Types.ObjectId) =>
-    id.toString()
-  ) as string[];
-  return (
-    userIds.every((userId) => gameUserIds.includes(userId.toString())) &&
-    userIds.length === gameUserIds.length
-  );
-});
 
 export const GameModel = mongoose.model(GameModelName, gameSchema);
 export type Game = mongoose.InferSchemaType<typeof gameSchema>;
