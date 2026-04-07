@@ -44,8 +44,7 @@ const leagueSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   startTime: { type: Date, required: true },
   phaseCutoffTimes: { type: [Date], required: false, default: [] },
-  endTime: { type: Date, required: false },
-  isOngoing: { type: Boolean, required: true, default: true },
+  endTime: { type: Date, required: true },
   hasTeams: { type: Boolean, required: true, default: false },
   rules: {
     type: String,
@@ -77,6 +76,18 @@ const leagueSchema = new mongoose.Schema({
 });
 
 export const LeagueModel = mongoose.model(LeagueModelName, leagueSchema);
+
+/**
+ * Returns a Mongoose filter object that matches leagues currently ongoing:
+ * started before now, and either no endTime or endTime in the future.
+ */
+export function ongoingLeagueFilter() {
+  const now = new Date();
+  return {
+    startTime: { $lte: now },
+    endTime: { $gt: now },
+  };
+}
 export type League = mongoose.InferSchemaType<typeof leagueSchema> & {
   _id: mongoose.Types.ObjectId;
 };
