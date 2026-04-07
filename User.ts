@@ -146,3 +146,5 @@ export const UserModel = mongoose.model("User", userSchema);
 export type User = mongoose.InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
+/** Plain-object variant returned by `.lean()`. */
+export type LeanUser = User;

@@ -73,3 +73,21 @@ export const GameRecordModel = mongoose.model(
 );
 
 export type GameRecord = mongoose.InferSchemaType<typeof gameRecordSchema>;
+/** Lean sub-document type for a single user's game record data. */
+export type UserGameRecordData = {
+  userDbId: mongoose.Types.ObjectId;
+  teamDbId?: mongoose.Types.ObjectId | null;
+  teamName?: string | null;
+  score: number;
+  place: number;
+  deltaPoints: number;
+  userId: string;
+  seat: number;
+  nickname: string;
+  roundEvents: mongoose.InferSchemaType<typeof roundEventSchema>[];
+};
+/** Plain-object variant returned by `.lean()`. */
+export type LeanGameRecord = Omit<GameRecord, "byUserData"> & {
+  _id: mongoose.Types.ObjectId;
+  byUserData: UserGameRecordData[];
+};

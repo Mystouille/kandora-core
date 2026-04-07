@@ -43,3 +43,9 @@ const teamSchema = new mongoose.Schema(
 
 export const TeamModel = mongoose.model(TeamModelName, teamSchema);
 export type Team = mongoose.InferSchemaType<typeof teamSchema>;
+/** Plain-object variant returned by `.lean()`. */
+export type LeanTeam = Omit<Team, "members" | "substitutes"> & {
+  _id: mongoose.Types.ObjectId;
+  members: mongoose.Types.ObjectId[];
+  substitutes: mongoose.Types.ObjectId[];
+};
