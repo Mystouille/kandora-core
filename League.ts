@@ -88,6 +88,12 @@ export function ongoingLeagueFilter() {
     endTime: { $gt: now },
   };
 }
+
+/** LeagueConfig values that represent a finals / elimination bracket league. */
+export const FINALS_LEAGUE_CONFIGS = [
+  LeagueConfig.LFCR_FINAL,
+  LeagueConfig.TRI_KINDOM_TILES_FINAL,
+] as const;
 export type League = mongoose.InferSchemaType<typeof leagueSchema> & {
   _id: mongoose.Types.ObjectId;
 };
