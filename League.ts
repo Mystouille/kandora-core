@@ -87,16 +87,17 @@ export function ongoingLeagueFilter() {
   };
 }
 
-/** LeagueConfig values that represent a finals / elimination bracket league. */
-export const FINALS_LEAGUE_CONFIGS = [
-  LeagueConfig.LFCR_FINAL,
-  LeagueConfig.TRI_KINDOM_TILES_FINAL,
+/** LeagueConfig values whose type definition includes a final bracket phase. */
+export const BRACKET_LEAGUE_CONFIGS = [
+  LeagueConfig.LFCR,
+  LeagueConfig.TRI_KINGDOM_TILES,
 ] as const;
 
-/** Mongoose filter for leagues with a finals structure. */
-export function finalsLeagueFilter() {
-  return { "rulesConfig.structure": { $in: [...FINALS_LEAGUE_CONFIGS] } };
+/** Mongoose filter for leagues whose structure supports a bracket phase. */
+export function bracketLeagueFilter() {
+  return { "rulesConfig.structure": { $in: [...BRACKET_LEAGUE_CONFIGS] } };
 }
+
 export type DbLeague = mongoose.InferSchemaType<typeof leagueSchema> & {
   _id: mongoose.Types.ObjectId;
 };
