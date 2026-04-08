@@ -1,26 +1,9 @@
 import mongoose from "mongoose";
+import { Ruleset, Platform, LeagueConfig } from "../types/league-enums";
+
+export { Ruleset, Platform, LeagueConfig };
 
 export const LeagueModelName = "League";
-export enum Ruleset {
-  EMA = "EMA",
-  WRC = "WRC",
-  ONLINE = "ONLINE",
-  MLEAGUE = "MLEAGUE",
-  INDONESIAN = "INDONESIAN",
-}
-export enum Platform {
-  MAJSOUL = "MAJSOUL",
-  TENHOU = "TENHOU",
-  RIICHICITY = "RIICHICITY",
-  IRL = "IRL",
-}
-export enum LeagueConfig {
-  LFCR = "LFCR",
-  LFCR_FINAL = "LFCR_FINAL",
-  TRI_KINDOM_TILES = "TRI_KINDOM_TILES",
-  TRI_KINDOM_TILES_FINAL = "TRI_KINDOM_TILES_FINAL",
-  INDONESIAN = "INDONESIAN",
-}
 
 const rulesetList = [
   Ruleset.EMA,
