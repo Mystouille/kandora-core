@@ -54,6 +54,7 @@ const leagueSchema = new mongoose.Schema({
         },
         tournamentId: { type: String, required: false },
         internalTournamentId: { type: String, required: false },
+        seasonId: { type: String, required: false },
       },
       { _id: false }
     ),
