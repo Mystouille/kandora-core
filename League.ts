@@ -71,6 +71,16 @@ const leagueSchema = new mongoose.Schema({
     ),
     required: false,
   },
+  presentation: {
+    type: new mongoose.Schema(
+      {
+        fr: { type: String, default: "" },
+        en: { type: String, default: "" },
+      },
+      { _id: false }
+    ),
+    required: false,
+  },
 });
 
 export const LeagueModel = mongoose.model(LeagueModelName, leagueSchema);
