@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Ruleset, Platform, LeagueConfig } from "../types/league-enums";
 import type { LeagueTypeConfig } from "../services/league-configs/types";
+import { LeagueTypeConfigModelName } from "./LeagueTypeConfig";
 
 export { Ruleset, Platform, LeagueConfig };
 
@@ -83,7 +84,8 @@ const leagueSchema = new mongoose.Schema({
     required: false,
   },
   leagueTypeConfig: {
-    type: mongoose.Schema.Types.Mixed,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: LeagueTypeConfigModelName,
     required: false,
     default: null,
   },
@@ -103,16 +105,21 @@ export function ongoingLeagueFilter() {
   };
 }
 
-/** Mongoose filter for leagues that have a bracket (final) phase configured. */
+/** Mongoose filter for leagues that have a league type config assigned. */
 export function bracketLeagueFilter() {
-  return { "leagueTypeConfig.finalPhase": { $exists: true, $ne: null } };
+  return { leagueTypeConfig: { $ne: null } };
 }
 
 export type DbLeague = mongoose.InferSchemaType<typeof leagueSchema> & {
   _id: mongoose.Types.ObjectId;
 };
-/** Plain-object variant returned by `.lean()` — no Mongoose wrappers. */
+/**
+ * Plain-object variant returned by `.lean()` after `.populate("leagueTypeConfig")`.
+ * When the ref is populated the field holds the full config object; otherwise null.
+ */
 export type League = Omit<DbLeague, "phaseCutoffTimes" | "leagueTypeConfig"> & {
   phaseCutoffTimes: Date[];
-  leagueTypeConfig: LeagueTypeConfig | null;
+  leagueTypeConfig:
+    | (LeagueTypeConfig & { _id: mongoose.Types.ObjectId })
+    | null;
 };
