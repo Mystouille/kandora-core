@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import type { LeagueTypeConfig as LeagueTypeConfigType } from "../services/league-configs/types";
+import type {
+  LeagueTypeConfig as LeagueTypeConfigType,
+  RegularPhaseDefinition,
+  FinalPhaseDefinition,
+} from "../services/league-configs/types";
 
 export const LeagueTypeConfigModelName = "LeagueTypeConfig";
 
@@ -20,10 +24,16 @@ export const LeagueTypeConfigModel = mongoose.model(
   leagueTypeConfigSchema
 );
 
-export type DbLeagueTypeConfig = mongoose.InferSchemaType<
-  typeof leagueTypeConfigSchema
-> & {
+export type DbLeagueTypeConfig = {
   _id: mongoose.Types.ObjectId;
+  displayName: string;
+  isTeamMode: boolean;
+  pilotBrackets?: boolean;
+  regularPhase?: RegularPhaseDefinition;
+  regularPhases?: RegularPhaseDefinition[];
+  finalPhase?: FinalPhaseDefinition;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 /** Plain-object variant returned by `.lean()`. */
