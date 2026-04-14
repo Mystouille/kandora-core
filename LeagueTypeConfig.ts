@@ -11,7 +11,6 @@ const leagueTypeConfigSchema = new mongoose.Schema(
   {
     displayName: { type: String, required: true },
     isTeamMode: { type: Boolean, required: true, default: false },
-    pilotBrackets: { type: Boolean, required: false, default: false },
     regularPhase: { type: mongoose.Schema.Types.Mixed, required: false },
     regularPhases: { type: mongoose.Schema.Types.Mixed, required: false },
     finalPhase: { type: mongoose.Schema.Types.Mixed, required: false },
@@ -28,7 +27,6 @@ export type DbLeagueTypeConfig = {
   _id: mongoose.Types.ObjectId;
   displayName: string;
   isTeamMode: boolean;
-  pilotBrackets?: boolean;
   regularPhase?: RegularPhaseDefinition;
   regularPhases?: RegularPhaseDefinition[];
   finalPhase?: FinalPhaseDefinition;
