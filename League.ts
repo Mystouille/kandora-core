@@ -35,10 +35,6 @@ const leagueSchema = new mongoose.Schema({
           enum: rulesetList,
           required: true,
         },
-        structure: {
-          type: String,
-          required: false,
-        },
         isTeamMode: { type: Boolean, required: true, default: true },
       },
       { _id: false }
