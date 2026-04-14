@@ -68,6 +68,7 @@ const leagueSchema = new mongoose.Schema({
         adminChannel: { type: String, required: false },
         resultChannel: { type: String, required: false },
         rankingChannel: { type: String, required: false },
+        schedulingChannel: { type: String, required: false },
       },
       { _id: false }
     ),
