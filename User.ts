@@ -102,8 +102,8 @@ const userSchema = new mongoose.Schema(
         }
         // Count games played by the team in this league (members + substitutes)
         const allTeamPlayerIds = [
-          ...userTeam.members,
-          ...(userTeam.substitutes ?? []),
+          ...userTeam.roster.members,
+          ...(userTeam.roster.substitutes ?? []),
         ];
         const teamGamesCount = await GameModel.countDocuments({
           league: leagueId,
