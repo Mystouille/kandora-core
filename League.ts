@@ -84,6 +84,11 @@ const leagueSchema = new mongoose.Schema({
     ),
     required: false,
   },
+  officialSubstitutes: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    required: false,
+    default: [],
+  },
   leagueTypeConfig: {
     type: mongoose.Schema.Types.ObjectId,
     ref: LeagueTypeConfigModelName,
