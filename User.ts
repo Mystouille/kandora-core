@@ -32,6 +32,17 @@ const discordIdentitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const preferencesSchema = new mongoose.Schema(
+  {
+    tileSet: {
+      type: String,
+      enum: ["default", "tenhou", "trainer"],
+      default: "default",
+    },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     discordIdentity: { type: discordIdentitySchema, required: false },
@@ -75,6 +86,11 @@ const userSchema = new mongoose.Schema(
       required: false,
     },
     isAdmin: { type: Boolean, required: true, default: false },
+    preferences: {
+      type: preferencesSchema,
+      required: false,
+      default: () => ({}),
+    },
   },
   {
     methods: {},
