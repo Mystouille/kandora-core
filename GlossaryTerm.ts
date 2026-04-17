@@ -15,6 +15,7 @@ const glossaryTermSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    japanese: { type: String, required: false },
     definition: { type: String, required: true },
     definitionEn: { type: String, required: false },
   },
