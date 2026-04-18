@@ -31,6 +31,7 @@ const teamSchema = new mongoose.Schema(
     leagueId: { type: mongoose.Schema.Types.ObjectId, required: true },
     roster: { type: rosterSchema, required: true },
     finalsRoster: { type: rosterSchema, required: false, default: null },
+    picture: { type: String, required: false, default: null },
   },
   {
     statics: {
@@ -68,4 +69,5 @@ export type Team = Omit<DbTeam, "roster" | "finalsRoster"> & {
   _id: mongoose.Types.ObjectId;
   roster: Roster;
   finalsRoster: Roster | null;
+  picture: string | null;
 };
