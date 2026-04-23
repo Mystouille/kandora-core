@@ -93,6 +93,11 @@ const tournamentSchema = new mongoose.Schema(
     },
     schedule: { type: [scheduleItemSchema], default: [] },
     playerList: { type: [playerListItemSchema], default: [] },
+    status: {
+      type: String,
+      enum: ["draft", "published"],
+      default: "draft",
+    },
   },
   { timestamps: true }
 );
