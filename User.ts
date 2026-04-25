@@ -1,6 +1,39 @@
 import mongoose from "mongoose";
 import { GameModel } from "./Game";
 import { TeamModel } from "./Team";
+
+/**
+ * Compute the canonical display name for a user.
+ *
+ * Priority:
+ *   1. `firstName` + last-name initial (`"John D."`) when `firstName` is set.
+ *   2. `discordIdentity.displayName` for Discord-only accounts.
+ *   3. The literal string `"Unknown"` as a last-resort fallback.
+ *
+ * This is the single source of truth for `user.name`. The pre-save hook
+ * below keeps the stored value in sync; bulk update paths (e.g. the daily
+ * Discord sync) must apply the same formula explicitly.
+ */
+export function computeUserName(
+  user:
+    | Pick<Partial<DbUser>, "firstName" | "lastName" | "discordIdentity">
+    | null
+    | undefined
+): string {
+  if (!user) {
+    return "Unknown";
+  }
+  const firstName = user.firstName?.trim();
+  if (firstName) {
+    const last = user.lastName?.trim();
+    return last ? `${firstName} ${last.charAt(0).toUpperCase()}.` : firstName;
+  }
+  const displayName = user.discordIdentity?.displayName?.trim();
+  if (displayName) {
+    return displayName;
+  }
+  return "Unknown";
+}
 const majsoulIdentitySchema = new mongoose.Schema(
   {
     friendId: { type: String, required: true },
@@ -146,6 +179,15 @@ userSchema.methods.toJSON = function () {
   delete obj.passwordHash;
   return obj;
 };
+
+// Always keep `name` in sync with the canonical formula. See
+// {@link computeUserName} for the priority order.
+userSchema.pre("save", function () {
+  // `this` is loosely typed inside Mongoose hooks; cast to the field shape
+  // accepted by the helper.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  this.name = computeUserName(this as any);
+});
 
 userSchema.index(
   { "majsoulIdentity.friendId": 1 },
