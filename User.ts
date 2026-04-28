@@ -182,7 +182,11 @@ userSchema.methods.toJSON = function () {
 
 // Always keep `name` in sync with the canonical formula. See
 // {@link computeUserName} for the priority order.
-userSchema.pre("save", function () {
+//
+// Use `pre("validate")` (not `pre("save")`) so the computed value is in
+// place before Mongoose's required-field validation runs — otherwise new
+// users created without an explicit `name` would fail validation.
+userSchema.pre("validate", function () {
   // `this` is loosely typed inside Mongoose hooks; cast to the field shape
   // accepted by the helper.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
