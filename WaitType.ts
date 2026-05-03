@@ -6,6 +6,7 @@ const waitTypeSchema = new mongoose.Schema({
   tileshape: { type: String, required: true },
   name_en: { type: String, required: false },
   name_fr: { type: String, required: false },
+  waits: { type: String, required: false },
 });
 
 export const WaitTypeModel =
