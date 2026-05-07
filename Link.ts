@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const resourceSchema = new mongoose.Schema(
+const linkSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     nameEn: { type: String, required: false },
@@ -17,10 +17,10 @@ const resourceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-resourceSchema.index({ type: 1, order: 1 });
+linkSchema.index({ type: 1, order: 1 });
 
-export const ResourceModel = mongoose.model("Resource", resourceSchema);
+export const LinkModel = mongoose.model("Link", linkSchema);
 
-export type Resource = mongoose.InferSchemaType<typeof resourceSchema> & {
+export type Link = mongoose.InferSchemaType<typeof linkSchema> & {
   _id: mongoose.Types.ObjectId;
 };
