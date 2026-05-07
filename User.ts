@@ -59,8 +59,13 @@ const riichiCityIdentitySchema = new mongoose.Schema(
 const discordIdentitySchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
-    email: { type: String, required: false },
     displayName: { type: String, required: false },
+    guildDisplayNames: {
+      type: Map,
+      of: String,
+      required: false,
+      default: undefined,
+    },
   },
   { _id: false }
 );
@@ -205,8 +210,21 @@ userSchema.index({ "discordIdentity.id": 1 }, { unique: true, sparse: true });
 
 export const UserModel = mongoose.model("User", userSchema);
 
-export type DbUser = mongoose.InferSchemaType<typeof userSchema> & {
+type RawUser = mongoose.InferSchemaType<typeof userSchema>;
+
+/**
+ * `guildDisplayNames` is stored as a Mongoose `Map`, but most consumers use
+ * `.lean()` queries which serialize it to a plain object. Expose it as a
+ * union of both shapes here so callers either branch on the runtime form
+ * or simply read keys via the helpers in this file.
+ */
+export type DbUser = Omit<RawUser, "discordIdentity"> & {
   _id: mongoose.Types.ObjectId;
+  discordIdentity?:
+    | (Omit<NonNullable<RawUser["discordIdentity"]>, "guildDisplayNames"> & {
+        guildDisplayNames?: Map<string, string> | Record<string, string> | null;
+      })
+    | null;
 };
 /** Plain-object variant returned by `.lean()`. */
 export type User = DbUser;
