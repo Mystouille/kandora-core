@@ -45,6 +45,20 @@ const gameSchema = new mongoose.Schema(
     },
     blockGameRecord: { type: Boolean, required: false, default: false },
     refetchGameRecord: { type: Boolean, required: false, default: false },
+    /**
+     * Phase 4.5: pointer into the `replaylogs` collection. Set by
+     * the portal-side hydration pipeline after the per-platform
+     * replay adapter parses the raw log. Absent for IRL games and
+     * for league games predating Phase 4.5 until the next
+     * hydration cycle backfills them.
+     */
+    replayLogRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ReplayLog",
+      required: false,
+    },
+    /** Mirrors `refetchGameRecord` for one-off replay re-parses. */
+    refetchReplayLog: { type: Boolean, required: false, default: false },
   },
   {
     virtuals: {
