@@ -124,6 +124,7 @@ const userSchema = new mongoose.Schema(
       required: false,
     },
     isAdmin: { type: Boolean, required: true, default: false },
+    isEditor: { type: Boolean, required: false, default: false },
     preferences: {
       type: preferencesSchema,
       required: false,
