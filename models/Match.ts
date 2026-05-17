@@ -68,12 +68,27 @@ const MatchSchema = new Schema(
     players: { type: [MatchPlayerSchema], required: true },
     events: { type: [MatchEventEnvelopeSchema], required: true, default: [] },
     nextSeq: { type: Number, required: true, default: 0 },
+    /**
+     * Session id that this match belongs to (Buu multi-game
+     * sessions only). Absent for legacy single-game matches.
+     * Multiple `Match` docs may share a `sessionId` — each
+     * representing one Buu game (East-only hanchan) — linked in
+     * play order by `gameIndex`.
+     */
+    sessionId: { type: String, required: false, index: true },
+    /**
+     * Zero-based index of this match within its `sessionId`.
+     * Absent for legacy single-game matches; 0 for the first
+     * game of a Buu session.
+     */
+    gameIndex: { type: Number, required: false, min: 0 },
   },
   { timestamps: true, _id: false }
 );
 
 MatchSchema.index({ "players.userId": 1, endedAt: -1 });
 MatchSchema.index({ endedAt: -1 });
+MatchSchema.index({ sessionId: 1, gameIndex: 1 });
 
 export const MatchModel =
   mongoose.models.Match ?? mongoose.model("Match", MatchSchema, "matches");
