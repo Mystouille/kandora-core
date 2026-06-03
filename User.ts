@@ -8,7 +8,8 @@ import { TeamModel } from "./Team";
  * Priority:
  *   1. `firstName` + last-name initial (`"John D."`) when `firstName` is set.
  *   2. `discordIdentity.displayName` for Discord-only accounts.
- *   3. The literal string `"Unknown"` as a last-resort fallback.
+ *   3. Platform identity nickname (Majsoul / Riichi City / Tenhou).
+ *   4. The literal string `"Unknown"` as a last-resort fallback.
  *
  * This is the single source of truth for `user.name`. The pre-save hook
  * below keeps the stored value in sync; bulk update paths (e.g. the daily
@@ -16,7 +17,15 @@ import { TeamModel } from "./Team";
  */
 export function computeUserName(
   user:
-    | Pick<Partial<DbUser>, "firstName" | "lastName" | "discordIdentity">
+    | Pick<
+        Partial<DbUser>,
+        | "firstName"
+        | "lastName"
+        | "discordIdentity"
+        | "majsoulIdentity"
+        | "riichiCityIdentity"
+        | "tenhouIdentity"
+      >
     | null
     | undefined
 ): string {
@@ -31,6 +40,13 @@ export function computeUserName(
   const displayName = user.discordIdentity?.displayName?.trim();
   if (displayName) {
     return displayName;
+  }
+  const platformName =
+    user.majsoulIdentity?.name?.trim() ||
+    user.riichiCityIdentity?.name?.trim() ||
+    user.tenhouIdentity?.name?.trim();
+  if (platformName) {
+    return platformName;
   }
   return "Unknown";
 }
