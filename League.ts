@@ -65,6 +65,15 @@ const leagueSchema = new mongoose.Schema({
         resultChannel: { type: String, required: false },
         rankingChannel: { type: String, required: false },
         schedulingChannel: { type: String, required: false },
+        // Locale used for any localized text the bot posts on this
+        // league's Discord channels (ranking, results, brackets, …).
+        // Has no effect on the website, which uses the viewer's locale.
+        locale: {
+          type: String,
+          enum: ["fr", "en"],
+          required: false,
+          default: "fr",
+        },
       },
       { _id: false }
     ),
