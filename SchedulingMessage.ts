@@ -22,6 +22,15 @@ const schedulingMessageSchema = new mongoose.Schema(
       default: "upcoming",
     },
     gameIds: { type: [String], default: [] },
+    /**
+     * Resolved participant IDs (Team IDs in team mode, User IDs in individual
+     * mode) for this stage at the time the scheduling message was posted.
+     * Required for stages whose participants come from `fromStages`
+     * (advancement) rather than direct `seeds` — e.g. the finals stage in a
+     * multi-stage bracket. Optional for backward-compatibility with existing
+     * docs created before this field was added.
+     */
+    participantIds: { type: [ObjectId], default: [] },
     launchedAt: { type: Date, required: false },
     completedAt: { type: Date, required: false },
   },
