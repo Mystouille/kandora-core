@@ -1,6 +1,15 @@
 import mongoose from "mongoose";
+import type { PicturePair } from "../types/pictures";
 
 export const TeamModelName = "Team";
+
+const picturePairSchema = new mongoose.Schema(
+  {
+    fullPicture: { type: String, required: true },
+    croppedPicture: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const rosterSchema = new mongoose.Schema(
   {
@@ -31,7 +40,7 @@ const teamSchema = new mongoose.Schema(
     leagueId: { type: mongoose.Schema.Types.ObjectId, required: true },
     roster: { type: rosterSchema, required: true },
     finalsRoster: { type: rosterSchema, required: false, default: null },
-    picture: { type: String, required: false, default: null },
+    pictures: { type: picturePairSchema, required: false, default: null },
   },
   {
     statics: {
@@ -65,9 +74,9 @@ export interface Roster {
 }
 
 /** Plain-object variant returned by `.lean()`. */
-export type Team = Omit<DbTeam, "roster" | "finalsRoster"> & {
+export type Team = Omit<DbTeam, "roster" | "finalsRoster" | "pictures"> & {
   _id: mongoose.Types.ObjectId;
   roster: Roster;
   finalsRoster: Roster | null;
-  picture: string | null;
+  pictures: PicturePair | null;
 };
