@@ -6,6 +6,7 @@ const leagueRankingMessageSchema = new mongoose.Schema({
   messageId: { type: String, required: true },
   league: { type: ObjectId, required: true },
   phaseKey: { type: String, required: false, default: null },
+  partIndex: { type: Number, required: true, default: 0 },
   lastUpdatedAt: { type: Date, required: true },
 });
 
