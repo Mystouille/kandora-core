@@ -36,12 +36,17 @@ const schedulingSeatSchema = new mongoose.Schema(
 /**
  * One scheduled table (game slot) within a round. `gameId` links the table to
  * the finished game that was played at it, populated by the scheduling linker.
+ * `wasInGame` records whether any seat at this table has been observed in-game,
+ * so the worker can distinguish a table that has finished playing but whose
+ * game log hasn't been linked yet ("waiting for game log") from one that simply
+ * hasn't started.
  */
 const schedulingTableSchema = new mongoose.Schema(
   {
     tableIndex: { type: Number, required: true },
     seats: { type: [schedulingSeatSchema], default: [] },
     gameId: { type: String, required: false, default: null },
+    wasInGame: { type: Boolean, default: false },
   },
   { _id: false }
 );
