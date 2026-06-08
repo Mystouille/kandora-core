@@ -9,6 +9,43 @@ export const schedulingStatuses = [
 ] as const;
 export type SchedulingStatus = (typeof schedulingStatuses)[number];
 
+export const substituteTypes = ["team", "official"] as const;
+export type PersistedSubstituteType = (typeof substituteTypes)[number];
+
+/**
+ * One seat of a persisted table. `userId` is the resolved occupant (declared
+ * substitutions already applied). `teamId` scopes the team-substitute pool and
+ * is null in individual mode.
+ */
+const schedulingSeatSchema = new mongoose.Schema(
+  {
+    seatIndex: { type: Number, required: true },
+    teamId: { type: ObjectId, ref: "Team", required: false, default: null },
+    userId: { type: ObjectId, ref: "User", required: true },
+    isSub: { type: Boolean, default: false },
+    subType: {
+      type: String,
+      enum: [...substituteTypes, null],
+      required: false,
+      default: null,
+    },
+  },
+  { _id: false }
+);
+
+/**
+ * One scheduled table (game slot) within a round. `gameId` links the table to
+ * the finished game that was played at it, populated by the scheduling linker.
+ */
+const schedulingTableSchema = new mongoose.Schema(
+  {
+    tableIndex: { type: Number, required: true },
+    seats: { type: [schedulingSeatSchema], default: [] },
+    gameId: { type: String, required: false, default: null },
+  },
+  { _id: false }
+);
+
 const schedulingMessageSchema = new mongoose.Schema(
   {
     messageId: { type: String, required: true },
@@ -31,6 +68,13 @@ const schedulingMessageSchema = new mongoose.Schema(
      * docs created before this field was added.
      */
     participantIds: { type: [ObjectId], default: [] },
+    /**
+     * Persisted resolved seating for this round (one entry per table). Set at
+     * scheduling-commit (`/league startnext`) and kept in sync by the worker.
+     * Absent on documents created before this field was added — readers fall
+     * back to regenerating the seating on the fly in that case.
+     */
+    tables: { type: [schedulingTableSchema], default: undefined },
     launchedAt: { type: Date, required: false },
     completedAt: { type: Date, required: false },
   },
