@@ -10,9 +10,11 @@ import mongoose, { Schema } from "mongoose";
  * `createdBy`); the review can be shared read-only via its `shortId`.
  *
  * The drawing is stored as a packed binary blob (see
- * `app/game/replay/reviewDrawing.ts` for the codec). The format is
- * normalized to a 256×256 grid so the same drawing renders correctly
- * regardless of the actual canvas size.
+ * `app/game/replay/reviewDrawing.ts` for the codec). Coordinates are
+ * normalized to [0..1] so the same drawing renders correctly
+ * regardless of the actual canvas size. The codec is versioned: new
+ * drawings are written at 16-bit-per-axis precision (v2) while the
+ * legacy 8-bit (v1) grid is still decoded for older reviews.
  *
  * `shortId` is the publicly shareable handle. It is intentionally
  * decoupled from `_id` so we can rotate it later (e.g. revoke a leaked
