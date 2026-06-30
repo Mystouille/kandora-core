@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { PicturePair } from "../types/pictures";
+import type { PicturePair } from "./types/pictures";
 
 export const TeamModelName = "Team";
 

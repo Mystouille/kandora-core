@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { glossaryTags } from "../types/glossary";
+import { glossaryTags } from "./types/glossary";
 
 export { glossaryTags };
-export type { GlossaryTag } from "../types/glossary";
+export type { GlossaryTag } from "./types/glossary";
 
 const glossaryTermSchema = new mongoose.Schema(
   {

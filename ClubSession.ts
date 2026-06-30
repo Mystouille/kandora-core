@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { SessionLocation } from "../types/SessionLocation";
+import { SessionLocation } from "./types/SessionLocation";
 
 export const ClubSessionModelName = "ClubSession";
 
