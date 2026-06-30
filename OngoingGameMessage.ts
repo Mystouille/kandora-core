@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { OngoingGameStatus } from "../services/connectors/ILeagueTournamentConnector.server";
+import { OngoingGameStatus } from "./types/ongoing-game-status";
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
 

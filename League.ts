@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Ruleset, Platform, LeagueConfig } from "./types/league-enums";
-import type { LeagueTypeConfig } from "../services/league-configs/types";
+import type { LeagueTypeConfig } from "./types/league-config";
 import { LeagueTypeConfigModelName } from "./LeagueTypeConfig";
 
 export { Ruleset, Platform, LeagueConfig };
