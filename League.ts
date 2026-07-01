@@ -89,6 +89,19 @@ const leagueSchema = new mongoose.Schema({
     ),
     required: false,
   },
+  // Short localized blurb shown on the tournament list cards.
+  summary: {
+    type: new mongoose.Schema(
+      {
+        fr: { type: String, default: "" },
+        en: { type: String, default: "" },
+      },
+      { _id: false }
+    ),
+    required: false,
+  },
+  // Optional cover image URL displayed on the tournament list cards.
+  coverImageUrl: { type: String, required: false, default: "" },
   officialSubstitutes: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     required: false,
