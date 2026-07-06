@@ -37,6 +37,16 @@ const gameSchema = new mongoose.Schema(
     log: { type: String, required: false },
     league: { type: mongoose.Schema.Types.ObjectId, required: false },
     platformIndex: { type: Number, required: false },
+    /**
+     * Phase this game belongs to, tagged at ingestion from the tournament
+     * lobby it was fetched from (per-phase leagues — see
+     * `League.platformConfig.phaseTournaments`). Holds a phase id from the
+     * LeagueTypeConfig (`regularPhase.id`, a `regularPhases[].id`, or
+     * `finalPhase.id`). Absent for single-lobby leagues and for games ingested
+     * before per-phase mode was enabled, in which case phase attribution falls
+     * back to the time-based `League.phaseCutoffTimes`.
+     */
+    phaseId: { type: String, required: false },
     isPublished: { type: Boolean, required: false, default: false },
     gameRecord: {
       type: mongoose.Schema.Types.ObjectId,

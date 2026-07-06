@@ -52,6 +52,30 @@ const leagueSchema = new mongoose.Schema({
         tournamentId: { type: String, required: false },
         internalTournamentId: { type: String, required: false },
         seasonId: { type: String, required: false },
+        // Optional per-phase tournament lobbies. When non-empty, the league
+        // runs in "per-phase" mode: each config phase (regularPhase /
+        // regularPhases[].id / finalPhase.id) is played in its own tournament
+        // lobby, and games are fetched from every lobby and tagged with the
+        // corresponding `phaseId` (see Game.phaseId). When empty (default),
+        // the league uses the single lobby above and phase attribution stays
+        // time-based via `phaseCutoffTimes`. All entries share `platformName`.
+        phaseTournaments: {
+          type: [
+            new mongoose.Schema(
+              {
+                // References a phase id from the LeagueTypeConfig:
+                // `regularPhase.id`, a `regularPhases[].id`, or `finalPhase.id`.
+                phaseId: { type: String, required: true },
+                tournamentId: { type: String, required: true },
+                internalTournamentId: { type: String, required: false },
+                seasonId: { type: String, required: false },
+              },
+              { _id: false }
+            ),
+          ],
+          required: false,
+          default: [],
+        },
       },
       { _id: false }
     ),
