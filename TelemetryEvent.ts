@@ -23,12 +23,10 @@ const telemetryEventSchema = new mongoose.Schema({
   stack: { type: String },
   // Arbitrary metadata
   meta: { type: mongoose.Schema.Types.Mixed },
-  // Auto-set on creation; TTL index auto-deletes after 10 days
+  // Auto-set on creation
   createdAt: { type: Date, default: Date.now },
 });
 
-// Auto-expire after 10 days (864_000 seconds)
-telemetryEventSchema.index({ createdAt: 1 }, { expireAfterSeconds: 864_000 });
 // Compound index for common queries
 telemetryEventSchema.index({ type: 1, createdAt: -1 });
 
