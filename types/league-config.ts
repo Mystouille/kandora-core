@@ -65,6 +65,12 @@ export interface RegularPhaseDefinition {
   scoring: RegularScoringConfig;
   /** When set, defines how participants advance from this phase to the next. */
   progression?: PhaseProgression;
+  /** Minimum games a player/team must play in this phase to be eligible to
+   *  qualify out of it (advance to the next phase or seed into the finals).
+   *  Entities below the threshold remain visible in the standings but are
+   *  excluded from the qualified/advancing/seeded selection. Undefined or 0
+   *  means no gate. Counted against total games actually played in the phase. */
+  minGames?: number;
 }
 
 export interface StageAdvancementEdge {
