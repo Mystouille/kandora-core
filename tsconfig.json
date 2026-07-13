@@ -11,5 +11,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*"],
+  "exclude": ["majsoul/**/*", "ui/**/*"]
 }
