@@ -52,6 +52,9 @@ const leagueSchema = new mongoose.Schema({
         tournamentId: { type: String, required: false },
         internalTournamentId: { type: String, required: false },
         seasonId: { type: String, required: false },
+        // Optional Tenhou account ID the lobby monitor logs in with when the
+        // lobby refuses guest connections. Empty = connect anonymously.
+        tenhouBotId: { type: String, required: false },
         // Optional per-phase tournament lobbies. When non-empty, the league
         // runs in "per-phase" mode: each config phase (regularPhase /
         // regularPhases[].id / finalPhase.id) is played in its own tournament
