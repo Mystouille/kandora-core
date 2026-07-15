@@ -161,7 +161,18 @@ export function parseMajsoulReplay(game: GameRecord): ReplayLog {
   // below carries the rinshan-flip signal.)
 
   for (const record of game.records) {
-    const name = record.constructor.name;
+    // Discriminate on protobufjs's canonical `$type.name` rather
+    // than `constructor.name`. protobufjs ≥8.1 decodes reflection
+    // types into messages whose constructor is anonymous
+    // (`constructor.name === ""`), which silently made every record
+    // fall through this switch and produced an events-less replay
+    // (only `match_start`, all seats stuck at the 25000 starting
+    // score). `$type.name` is stable across protobufjs versions;
+    // the `constructor.name` fallback keeps the unit-test mocks
+    // (plain named classes without a `$type`) working.
+    const name =
+      (record as { $type?: { name?: string } }).$type?.name ??
+      record.constructor.name;
     switch (name) {
       case "RecordNewRound": {
         const r = record as lq.RecordNewRound;
