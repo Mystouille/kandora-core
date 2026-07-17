@@ -98,6 +98,7 @@ const tournamentSchema = new mongoose.Schema(
       enum: ["draft", "published"],
       default: "draft",
     },
+    isMERS: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
