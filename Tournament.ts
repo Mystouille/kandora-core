@@ -49,6 +49,9 @@ const playerListItemSchema = new mongoose.Schema(
   {
     timestamp: { type: Date, required: true },
     playerName: { type: String, required: true, trim: true },
+    firstName: { type: String, default: "", trim: true },
+    lastName: { type: String, default: "", trim: true },
+    email: { type: String, default: "", trim: true },
     licenceId: { type: String, default: "", trim: true },
     nationality: { type: String, default: "", trim: true },
     proOrg: {
