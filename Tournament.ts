@@ -96,6 +96,8 @@ const tournamentSchema = new mongoose.Schema(
     },
     schedule: { type: [scheduleItemSchema], default: [] },
     playerList: { type: [playerListItemSchema], default: [] },
+    /** Max number of players; registrations beyond it are shown as waiting list. 0 = no limit. */
+    capacity: { type: Number, default: 0, min: 0 },
     status: {
       type: String,
       enum: ["draft", "published"],
