@@ -56,7 +56,11 @@ export class CustomLobbyConnection {
   }
 
   public reconnect(): Promise<void> {
-    if (this.socket && !this.socket.CLOSED && !this.socket.CLOSING) {
+    if (
+      this.socket &&
+      this.socket.readyState !== WebSocket.CLOSED &&
+      this.socket.readyState !== WebSocket.CLOSING
+    ) {
       console.log("socket terminate");
       this.socket.terminate();
     }
