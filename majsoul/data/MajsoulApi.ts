@@ -166,7 +166,8 @@ export class MajsoulApi {
   }): Promise<lq.ResOauth2Check> {
     // EN/Yostar login (type 22): the Yostar auth token goes straight into
     // oauth2Auth as `code` — no passport hop. A genuine (browser-minted) token
-    // clears the oauth2Auth 151 anti-bot gate; see majsoul-agent for minting.
+    // clears the oauth2Auth 151 anti-bot gate. MAJSOUL_TOKEN / MAJSOUL_UID are
+    // snooped from the Yostar `login` call (Data.UserInfo.Token / .ID).
     const type = 22;
     this.clientVersion = MAJSOUL_VERSION;
 
