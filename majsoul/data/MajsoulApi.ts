@@ -24,6 +24,16 @@ import type { Player } from "./types/Player";
 import { CustomLobbyConnection } from "./CustomLobbyConnection";
 import type { RecordGame } from "./types/RecordGame";
 
+function randomContract(): string {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let s = "";
+  for (let i = 0; i < 32; i++) {
+    s += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return s;
+}
+
 export class MajsoulApi {
   private static async getRes<T>(path: string): Promise<T> {
     return (await fetch(path)).json() as Promise<T>;
@@ -56,7 +66,7 @@ export class MajsoulApi {
   private readonly rpc: RpcImplementation;
   public readonly lobbyService: RpcService;
   private readonly codec: Codec;
-  private readonly clientVersion: string;
+  private clientVersion: string;
   public readonly notifications: Observable<any>;
 
   constructor(private readonly apiResources: ApiResources) {
@@ -127,17 +137,31 @@ export class MajsoulApi {
     // this.lobbyService.rpcCall
   }
 
-  public async logIn(passport: Passport): Promise<lq.ResOauth2Check> {
-    const type = 7;
+  public async logIn({
+    token,
+    uid,
+    deviceUuid,
+    version,
+  }: {
+    token: string;
+    uid: string;
+    deviceUuid: string;
+    version: string;
+  }): Promise<lq.ResOauth2Check> {
+    // EN/Yostar login (type 22): the Yostar auth token goes straight into
+    // oauth2Auth as `code` — no passport hop. A genuine (browser-minted) token
+    // clears the oauth2Auth 151 anti-bot gate; see majsoul-agent for minting.
+    const type = 22;
+    this.clientVersion = version;
 
     const respOauth2Auth = await this.lobbyService.rpcCall<
       lq.ReqOauth2Auth,
       lq.ResOauth2Auth
     >("oauth2Auth", {
       type,
-      code: passport.accessToken,
-      uid: passport.uid,
-      client_version_string: this.clientVersion,
+      code: token,
+      uid,
+      client_version_string: version,
     });
 
     if (respOauth2Auth.error) {
@@ -168,7 +192,6 @@ export class MajsoulApi {
       lq.ResLogin
     >("oauth2Login", {
       type,
-      currency_platforms: [2, 9],
       access_token: respOauth2Auth.access_token,
       reconnect: false,
       device: {
@@ -180,9 +203,11 @@ export class MajsoulApi {
         software: "Chrome",
         sale_platform: "web",
       },
-      random_key: uuidv4(),
+      random_key: deviceUuid,
       client_version: { resource: this.apiResources.version },
-      client_version_string: this.clientVersion,
+      currency_platforms: [1, 4, 5, 9, 12],
+      client_version_string: version,
+      tag: "en",
     });
 
     if (respOauth2Login.error) {
@@ -195,6 +220,14 @@ export class MajsoulApi {
         `Couldn't log in to user id (no account in response, keys: ${Object.keys(respOauth2Login).join(", ")})`
       );
     }
+
+    // loginBeat + loginSuccess finalise the session on the bookkeeping server;
+    // without loginBeat, fetchGameRecord returns error 1004 ("not logged in").
+    await this.lobbyService.rpcCall("loginBeat", {
+      contract: randomContract(),
+    });
+    await this.lobbyService.rpcCall("loginSuccess", {});
+
     console.log("[Readiness] Majsoul Websocket connected");
 
     return respOauth2Login;

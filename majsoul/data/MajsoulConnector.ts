@@ -123,59 +123,30 @@ export class MahjongSoulConnector implements ILeagueDataConnector<
       );
     }
 
-    const tokenCandidates = [
-      dynamicPassport?.accessToken,
-      apiConfig.passportToken,
-    ]
-      .filter((token): token is string => !!token)
-      .filter((token, index, self) => self.indexOf(token) === index);
-
-    console.log(
-      `[Majsoul] Token candidates: ${tokenCandidates.length} (dynamic: ${!!dynamicPassport?.accessToken}, saved: ${!!apiConfig.passportToken})`
-    );
-
-    if (tokenCandidates.length === 0) {
-      throw new Error("Failed to acquire Majsoul passport token");
+    // WS record login uses the Yostar token (MAJSOUL_TOKEN) directly — a genuine
+    // browser-minted token clears the oauth2Auth 151 gate, so the passport hop is
+    // no longer used for the record WebSocket. (The contest REST gate below still
+    // uses the passport token when one is available.)
+    if (!config.MAJSOUL_TOKEN || !config.MAJSOUL_UID) {
+      throw new Error("MAJSOUL_TOKEN / MAJSOUL_UID not configured");
     }
 
-    let loginSucceeded = false;
-    let lastLoginError: unknown = null;
-
-    for (const [i, token] of tokenCandidates.entries()) {
-      try {
-        const label =
-          i === 0 ? "dynamic passport token" : "saved DB passport token";
-        console.log(
-          `[Majsoul] Trying login with ${label} (${token.slice(0, 8)}...)`
-        );
-
-        const passport: Passport = {
-          accessToken: token,
-          uid: config.MAJSOUL_UID,
-        };
-
-        const apiResources = await MajsoulApi.retrieveApiResources();
-        this.api = new MajsoulApi(apiResources!);
-        this.api.notifications.subscribe((n: any) => console.log(n));
-        await this.api.init();
-        await this.api.logIn(passport);
-        loginSucceeded = true;
-        break;
-      } catch (error) {
-        lastLoginError = error;
-        // Close the websocket connection to avoid zombie connections
-        this.api?.dispose();
-        this.api = undefined;
-        console.warn(
-          `[Majsoul] Login attempt ${i + 1}/${tokenCandidates.length} failed:`,
-          error instanceof Error ? error.message : error
-        );
-      }
-    }
-
-    if (!loginSucceeded) {
+    const apiResources = await MajsoulApi.retrieveApiResources();
+    this.api = new MajsoulApi(apiResources!);
+    this.api.notifications.subscribe((n: any) => console.log(n));
+    await this.api.init();
+    try {
+      await this.api.logIn({
+        token: config.MAJSOUL_TOKEN,
+        uid: config.MAJSOUL_UID,
+        deviceUuid: config.MAJSOUL_DEVICE_ID,
+        version: config.MAJSOUL_VERSION,
+      });
+    } catch (error) {
+      this.api?.dispose();
+      this.api = undefined;
       throw new Error(
-        `Failed to log in to Majsoul with available tokens: ${String(lastLoginError)}`
+        `Failed to log in to Majsoul: ${error instanceof Error ? error.message : String(error)}`
       );
     }
 
