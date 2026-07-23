@@ -305,7 +305,10 @@ export class MajsoulApi {
       contest_id: id,
     });
 
-    if (resp.contest_info === undefined) {
+    // The server returns contest_info: null (not undefined) for a closed or
+    // nonexistent contest; `== null` catches both so we return null cleanly
+    // instead of crashing on `null.unique_id`.
+    if (resp.contest_info == null) {
       return null;
     }
 
