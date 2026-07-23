@@ -24,6 +24,13 @@ import type { Player } from "./types/Player";
 import { CustomLobbyConnection } from "./CustomLobbyConnection";
 import type { RecordGame } from "./types/RecordGame";
 
+// Static per-relay-profile values (formerly the MAJSOUL_DEVICE_ID / MAJSOUL_VERSION
+// env vars). The device UUID is oauth2Login's random_key; the version is the
+// client_version_string sent to oauth2Auth / oauth2Login / fetchGameRecord. Both
+// change rarely — when auth lapses you refresh the token, not these.
+const MAJSOUL_DEVICE_ID = "009ed7aa-d155-4904-b350-71476261167d";
+const MAJSOUL_VERSION = "WebGL_2022-0.16.211";
+
 function randomContract(): string {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -153,19 +160,15 @@ export class MajsoulApi {
   public async logIn({
     token,
     uid,
-    deviceUuid,
-    version,
   }: {
     token: string;
     uid: string;
-    deviceUuid: string;
-    version: string;
   }): Promise<lq.ResOauth2Check> {
     // EN/Yostar login (type 22): the Yostar auth token goes straight into
     // oauth2Auth as `code` — no passport hop. A genuine (browser-minted) token
     // clears the oauth2Auth 151 anti-bot gate; see majsoul-agent for minting.
     const type = 22;
-    this.clientVersion = version;
+    this.clientVersion = MAJSOUL_VERSION;
 
     // The real client sends Route.requestConnection first; without it — or
     // without its field #6 = "Web" (injected into the proto in the constructor) —
@@ -184,7 +187,7 @@ export class MajsoulApi {
       type,
       code: token,
       uid,
-      client_version_string: version,
+      client_version_string: MAJSOUL_VERSION,
     });
 
     if (respOauth2Auth.error) {
@@ -231,10 +234,10 @@ export class MajsoulApi {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         screen_type: 1,
       },
-      random_key: deviceUuid,
+      random_key: MAJSOUL_DEVICE_ID,
       client_version: { resource: this.apiResources.version },
       currency_platforms: [1, 4, 5, 9, 12],
-      client_version_string: version,
+      client_version_string: MAJSOUL_VERSION,
       tag: "en",
     });
 

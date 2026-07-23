@@ -139,8 +139,6 @@ export class MahjongSoulConnector implements ILeagueDataConnector<
       await this.api.logIn({
         token: config.MAJSOUL_TOKEN,
         uid: config.MAJSOUL_UID,
-        deviceUuid: config.MAJSOUL_DEVICE_ID,
-        version: config.MAJSOUL_VERSION,
       });
     } catch (error) {
       this.api?.dispose();
