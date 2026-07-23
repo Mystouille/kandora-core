@@ -71,6 +71,17 @@ export class MajsoulApi {
   public readonly notifications: Observable<any>;
 
   constructor(private readonly apiResources: ApiResources) {
+    // The oauth2Auth 151 anti-bot gate requires Route.requestConnection to carry
+    // an extra field #6 = "Web" that the live liqi proto no longer declares
+    // (verified: dropping it flips oauth2Auth from success to error 151). Inject
+    // the field so protobufjs will encode it — the wire only cares about the
+    // field number + value, not the name we give it here.
+    const defn = apiResources.protobufDefinition as any;
+    const reqConnFields =
+      defn?.nested?.lq?.nested?.ReqRequestConnection?.fields;
+    if (reqConnFields && !reqConnFields.web) {
+      reqConnFields.web = { type: "string", id: 6 };
+    }
     this.protobufRoot = Root.fromJSON(apiResources.protobufDefinition);
     this.clientVersion = `web-${apiResources.version.slice(0, -2)}`;
     //console.log(`Client version: [${this.clientVersion}]`);
@@ -156,12 +167,14 @@ export class MajsoulApi {
     const type = 22;
     this.clientVersion = version;
 
-    // The real client sends Route.requestConnection first; without it,
-    // oauth2Auth returns 151 (the connection isn't "established").
+    // The real client sends Route.requestConnection first; without it — or
+    // without its field #6 = "Web" (injected into the proto in the constructor) —
+    // oauth2Auth returns 151. `web` maps to wire field 6; the value must be "Web".
     await this.routeService.rpcCall("requestConnection", {
       type: 1,
       route_id: "en-2",
       timestamp: Math.floor(Date.now() / 1000),
+      web: "Web",
     });
 
     const respOauth2Auth = await this.lobbyService.rpcCall<

@@ -52,18 +52,7 @@ export class Connection {
       // tick as construction, so a failed handshake can never surface as an
       // unhandled "error" event (which Node throws as an uncaught exception).
       let settled = false;
-      // The oauth2Auth 151 anti-bot gate inspects the WS handshake: a bare `ws`
-      // client (no Origin, no browser UA) is flagged. Present the same browser
-      // Origin + Chrome UA the real client sends so a genuine token is accepted.
-      const socket = new WebSocket(this.server, {
-        agent,
-        headers: {
-          Origin: "https://mahjongsoul.game.yo-star.com",
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
-          "Accept-Language": "en-US,en;q=0.9",
-        },
-      });
+      const socket = new WebSocket(this.server, { agent });
       this.socket = socket;
 
       socket.on("message", (data) => {
