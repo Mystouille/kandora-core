@@ -65,6 +65,7 @@ export class MajsoulApi {
   private readonly connection: Connection;
   private readonly rpc: RpcImplementation;
   public readonly lobbyService: RpcService;
+  private readonly routeService: RpcService;
   private readonly codec: Codec;
   private clientVersion: string;
   public readonly notifications: Observable<any>;
@@ -84,6 +85,7 @@ export class MajsoulApi {
     );
     this.rpc = new RpcImplementation(this.connection, this.protobufRoot);
     this.lobbyService = this.rpc.getService("Lobby");
+    this.routeService = this.rpc.getService("Route");
   }
 
   public static getPlayerZone(playerId: number): PlayerZone {
@@ -154,6 +156,14 @@ export class MajsoulApi {
     const type = 22;
     this.clientVersion = version;
 
+    // The real client sends Route.requestConnection first; without it,
+    // oauth2Auth returns 151 (the connection isn't "established").
+    await this.routeService.rpcCall("requestConnection", {
+      type: 1,
+      route_id: "en-2",
+      timestamp: Math.floor(Date.now() / 1000),
+    });
+
     const respOauth2Auth = await this.lobbyService.rpcCall<
       lq.ReqOauth2Auth,
       lq.ResOauth2Auth
@@ -202,6 +212,11 @@ export class MajsoulApi {
         is_browser: true,
         software: "Chrome",
         sale_platform: "web",
+        screen_width: 1180,
+        screen_height: 820,
+        user_agent:
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        screen_type: 1,
       },
       random_key: deviceUuid,
       client_version: { resource: this.apiResources.version },
