@@ -380,12 +380,14 @@ async function renderTileToDataUrl(
 interface TileImageProps {
   tile: string;
   height?: number;
+  sizeFactor?: number;
   tileSet?: TileSetName;
 }
 
 export function TileImage({
   tile,
   height = 22,
+  sizeFactor,
   tileSet = TileSetName.Trainer,
 }: TileImageProps) {
   const cfg: TileSetConfig = TILE_SETS[tileSet];
@@ -394,13 +396,19 @@ export function TileImage({
     (token.colorBgBase ?? "").startsWith("#0") ||
     (token.colorBgBase ?? "").startsWith("#1");
   const drawBorder = !!(cfg.lightBorder && !isDark);
-  const displayHeight = height * (cfg.displayScale ?? 1);
+  const displayScale = cfg.displayScale ?? 1;
+  const displayHeight = height * displayScale;
+  const relativeSizeFactor = sizeFactor ? sizeFactor * displayScale : undefined;
+  const renderHeight = relativeSizeFactor
+    ? Math.ceil(relativeSizeFactor * 32)
+    : displayHeight;
   const [src, setSrc] = useState<string | null>(null);
+  const aspectRatio = cfg.tileW / cfg.tileH;
   const displayWidth = Math.round(cfg.tileW * (displayHeight / cfg.tileH));
 
   useEffect(() => {
     let cancelled = false;
-    renderTileToDataUrl(tile, cfg, displayHeight, drawBorder).then((url) => {
+    renderTileToDataUrl(tile, cfg, renderHeight, drawBorder).then((url) => {
       if (!cancelled) {
         setSrc(url);
       }
@@ -408,7 +416,7 @@ export function TileImage({
     return () => {
       cancelled = true;
     };
-  }, [tile, tileSet, displayHeight, drawBorder]);
+  }, [tile, tileSet, renderHeight, drawBorder]);
 
   if (!src) {
     return null;
@@ -418,18 +426,23 @@ export function TileImage({
   // Negative vertical margins let the tile overflow above/below the text line
   // without pushing the line box taller.
   const vMargin = -(displayHeight - 16) / 2;
+  const relativeMargin = relativeSizeFactor
+    ? `calc((1em - ${relativeSizeFactor}em) / 2)`
+    : undefined;
 
   return (
     <img
       src={src}
       alt={tile}
       style={{
-        width: displayWidth,
-        height: displayHeight,
+        width: relativeSizeFactor
+          ? `${relativeSizeFactor * aspectRatio}em`
+          : displayWidth,
+        height: relativeSizeFactor ? `${relativeSizeFactor}em` : displayHeight,
         display: "inline-block",
         verticalAlign: "middle",
-        marginTop: vMargin,
-        marginBottom: vMargin,
+        marginTop: relativeMargin ?? vMargin,
+        marginBottom: relativeMargin ?? vMargin,
       }}
     />
   );
