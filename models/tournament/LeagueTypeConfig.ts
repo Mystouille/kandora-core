@@ -3,7 +3,7 @@ import type {
   LeagueTypeConfig as LeagueTypeConfigType,
   RegularPhaseDefinition,
   FinalPhaseDefinition,
-} from "./types/league-config";
+} from "../../types/league-config";
 
 export const LeagueTypeConfigModelName = "LeagueTypeConfig";
 

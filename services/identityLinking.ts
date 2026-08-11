@@ -1,5 +1,5 @@
 import type { Types } from "mongoose";
-import { UserModel } from "../User";
+import { UserModel } from "../models/shared/User";
 
 /**
  * Result of resolving a platform id to its canonical in-game username.

@@ -6,7 +6,7 @@ import type { Subscription } from "rxjs";
 import { getPassport } from "./passport";
 import { MajsoulApi } from "./MajsoulApi";
 import type { Passport } from "./types/Passport";
-import { MajsoulConfigModel } from "../../../db/MajsoulConfig";
+import { MajsoulConfigModel } from "../../models/shared/MajsoulConfig";
 import { config } from "../../../../config";
 import type { Cookie } from "../types/Cookie";
 import type { RecordGame } from "./types/RecordGame";
