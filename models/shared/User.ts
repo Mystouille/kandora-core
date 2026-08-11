@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { GameModel } from "./Game";
-import { TeamModel } from "./Team";
+import { GameModel } from "../tournament/Game";
+import { TeamModel } from "../tournament/Team";
 
 /**
  * Compute the canonical display name for a user.

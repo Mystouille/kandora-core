@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Han } from "./types/Han";
+import { Han } from "../../types/Han";
 
 export const GameRecordModelName = "GameRecord";
 

@@ -1,5 +1,5 @@
 import { getPassport } from "./passport";
-import { MajsoulConfigModel } from "../../../db/MajsoulConfig";
+import { MajsoulConfigModel } from "../../models/shared/MajsoulConfig";
 import { config } from "../../../../config";
 import type { Cookie } from "../types/Cookie";
 import type { MSoulUser, RunningGame, GamePlan } from "./types/MSoulUser";

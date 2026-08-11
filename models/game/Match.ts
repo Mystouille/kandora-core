@@ -7,7 +7,7 @@ import mongoose, { Schema } from "mongoose";
  * full event log as an embedded array, and final scores. Append-only:
  * events are added live with `$push`, never edited.
  *
- * The model lives in `app/db/models/` (not the flat `app/db/`) per the
+ * The model lives in `app/core/models/game/` per the
  * plan: it is a **shared schema layer** the game-server can import
  * across the portal/game ESLint boundary. See `app/game/README.md`.
  *

@@ -10,7 +10,7 @@ import mongoose, { Schema } from "mongoose";
  * `GameRecord`; the in-app game's `archiveMatch` writes one row
  * with `source: "ingame"` and `sourceGameId === matchId`.
  *
- * The model lives in `app/db/models/` (the shared schema layer) so
+ * The model lives in `app/core/models/game/` (the shared schema layer) so
  * the game-server can import it across the boundary rule. The
  * embedded `events` are `Schema.Types.Mixed` so the Mongoose layer
  * stays out of the `GameEvent` Zod schema's way.
