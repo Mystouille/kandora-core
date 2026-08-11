@@ -5,6 +5,12 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import {
+  LEGACY_LOCALE_COOKIE_NAME,
+  SHARED_LOCALE_COOKIE_NAME,
+  asUiLocale,
+  serializeUiPreferenceCookie,
+} from "./uiPreferences";
 
 export type Locale = string;
 
@@ -36,6 +42,28 @@ interface LocaleProviderProps {
   dictionaries: Record<string, unknown>;
   initialLocale?: Locale;
   defaultLocale?: Locale;
+  sharedCookieDomain?: string | null;
+}
+
+function writeLocaleCookies(
+  locale: Locale,
+  sharedCookieDomain?: string | null
+) {
+  const secure = window.location.protocol === "https:";
+  document.cookie = serializeUiPreferenceCookie(
+    LEGACY_LOCALE_COOKIE_NAME,
+    locale,
+    { secure }
+  );
+
+  const sharedLocale = asUiLocale(locale);
+  if (sharedCookieDomain && sharedLocale) {
+    document.cookie = serializeUiPreferenceCookie(
+      SHARED_LOCALE_COOKIE_NAME,
+      sharedLocale,
+      { domain: sharedCookieDomain, secure }
+    );
+  }
 }
 
 export function LocaleProvider({
@@ -43,6 +71,7 @@ export function LocaleProvider({
   dictionaries,
   initialLocale,
   defaultLocale = "fr",
+  sharedCookieDomain,
 }: LocaleProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(
     initialLocale ?? defaultLocale
@@ -56,12 +85,15 @@ export function LocaleProvider({
       localStorage.setItem("locale", locale);
       document.documentElement.lang = locale;
     }
+    if (sharedCookieDomain) {
+      writeLocaleCookies(locale, sharedCookieDomain);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem("locale", newLocale);
-    document.cookie = `locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+    writeLocaleCookies(newLocale, sharedCookieDomain);
     document.documentElement.lang = newLocale;
   };
 
