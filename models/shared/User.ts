@@ -90,7 +90,7 @@ const preferencesSchema = new mongoose.Schema(
   {
     tileSet: {
       type: String,
-      enum: ["default", "tenhou", "trainer"],
+      enum: ["default", "tenhou", "trainer", "uzaku"],
       default: "default",
     },
   },

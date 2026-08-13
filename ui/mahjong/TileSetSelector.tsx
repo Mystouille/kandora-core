@@ -19,6 +19,7 @@ export function TileSetSelector({ value, onChange }: TileSetSelectorProps) {
           { label: "Mahjong Soul", value: TileSetName.MahjongSoul },
           { label: "Tenhou", value: TileSetName.Tenhou },
           { label: "Trainer", value: TileSetName.Trainer },
+          { label: "Uzaku", value: TileSetName.Uzaku },
         ]}
       />
     </div>
