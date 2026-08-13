@@ -1,3 +1,13 @@
+import flatMahjongSoulUrl from "./assets/tiles/mahjongSoul/flat.png?url";
+import mahjongSoulCalledTilesUrl from "./assets/tiles/mahjongSoul/tilesCalled.png?url";
+import mahjongSoulTilesUrl from "./assets/tiles/mahjongSoul/tiles.png?url";
+import flatTenhouUrl from "./assets/tiles/tenhou/flatTenhou.png?url";
+import tenhouUprightCalledTilesUrl from "./assets/tiles/tenhou/tilesCalled2Tenhou.png?url";
+import tenhouCalledTilesUrl from "./assets/tiles/tenhou/tilesCalledTenhou.png?url";
+import tenhouTilesUrl from "./assets/tiles/tenhou/tilesTenhou.png?url";
+import trainerCalledTilesUrl from "./assets/tiles/trainer/tilesCalledTrainer.png?url";
+import trainerTilesUrl from "./assets/tiles/trainer/tilesTrainer.png?url";
+
 /* ---------- tile set configuration ---------- */
 
 export enum TileSetName {
@@ -9,16 +19,19 @@ export enum TileSetName {
 export interface TileSetConfig {
   tileW: number;
   tileH: number;
+  inlineTileW: number;
+  inlineTileH: number;
+  inlineTilesImageUrl: string;
   calledW: number;
   calledH: number;
-  tilesImage: string;
-  calledImage: string;
+  tilesImageUrl: string;
+  calledImageUrl: string;
   /** Row order for suits in the spritesheet. Default: s=0, m=1, p=2, z=3. */
   suitRows?: Record<string, number>;
   /** Scale factor for melded tiles (tilted + upright). Default 1. */
   meldScaleFactor?: number;
   /** Separate spritesheet for upright meld tiles (e.g. tenhou style). */
-  meldUprightImage?: string;
+  meldUprightImageUrl?: string;
   meldUprightW?: number;
   meldUprightH?: number;
   /** Global display scale factor applied to tileHeight. Default 1. */
@@ -35,31 +48,40 @@ export const TILE_SETS: Record<TileSetName, TileSetConfig> = {
   [TileSetName.MahjongSoul]: {
     tileW: 80,
     tileH: 129,
+    inlineTileW: 78,
+    inlineTileH: 114,
+    inlineTilesImageUrl: flatMahjongSoulUrl,
     calledW: 116,
     calledH: 91,
-    tilesImage: "tiles.png",
-    calledImage: "tilesCalled.png",
+    tilesImageUrl: mahjongSoulTilesUrl,
+    calledImageUrl: mahjongSoulCalledTilesUrl,
   },
   [TileSetName.Tenhou]: {
     tileW: 67,
     tileH: 101,
+    inlineTileW: 65,
+    inlineTileH: 77,
+    inlineTilesImageUrl: flatTenhouUrl,
     calledW: 55,
     calledH: 50,
-    tilesImage: "tilesTenhou.png",
-    calledImage: "tilesCalledTenhou.png",
+    tilesImageUrl: tenhouTilesUrl,
+    calledImageUrl: tenhouCalledTilesUrl,
     suitRows: { m: 0, p: 1, s: 2, z: 3 },
     meldScaleFactor: 1.5,
-    meldUprightImage: "tilesCalled2Tenhou.png",
+    meldUprightImageUrl: tenhouUprightCalledTilesUrl,
     meldUprightW: 41,
     meldUprightH: 62,
   },
   [TileSetName.Trainer]: {
     tileW: 192,
     tileH: 256,
+    inlineTileW: 192,
+    inlineTileH: 256,
+    inlineTilesImageUrl: trainerTilesUrl,
     calledW: 256,
     calledH: 192,
-    tilesImage: "tilesTrainer.png",
-    calledImage: "tilesCalledTrainer.png",
+    tilesImageUrl: trainerTilesUrl,
+    calledImageUrl: trainerCalledTilesUrl,
     displayScale: 0.8,
     tileGap: 2,
     lightBorder: true,

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { theme } from "antd";
-import { basePath } from "../basePath";
 import {
   MeldSource,
   MeldType,
@@ -139,11 +138,11 @@ async function renderHandToDataUrl(
   ctx.imageSmoothingQuality = "high";
 
   const imagePromises: Promise<HTMLImageElement>[] = [
-    loadImage(`${basePath}/tiles/${cfg.tilesImage}`),
-    loadImage(`${basePath}/tiles/${cfg.calledImage}`),
+    loadImage(cfg.tilesImageUrl),
+    loadImage(cfg.calledImageUrl),
   ];
-  if (cfg.meldUprightImage) {
-    imagePromises.push(loadImage(`${basePath}/tiles/${cfg.meldUprightImage}`));
+  if (cfg.meldUprightImageUrl) {
+    imagePromises.push(loadImage(cfg.meldUprightImageUrl));
   }
   const [tilesImg, calledImg, meldUprightImg] =
     await Promise.all(imagePromises);
@@ -333,11 +332,11 @@ async function renderTileToDataUrl(
   displayHeight: number,
   drawBorder: boolean
 ): Promise<string> {
-  const scale = displayHeight / cfg.tileH;
+  const scale = displayHeight / cfg.inlineTileH;
   // Render at 2x display size for sharpness
   const factor = scale * 2;
-  const canvasW = Math.round(cfg.tileW * factor);
-  const canvasH = Math.round(cfg.tileH * factor);
+  const canvasW = Math.round(cfg.inlineTileW * factor);
+  const canvasH = Math.round(cfg.inlineTileH * factor);
 
   const canvas = document.createElement("canvas");
   canvas.width = canvasW;
@@ -350,15 +349,19 @@ async function renderTileToDataUrl(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  const img = await loadImage(`${basePath}/tiles/${cfg.tilesImage}`);
-  const pos = getTilePosition(tile, cfg);
+  const img = await loadImage(cfg.inlineTilesImageUrl);
+  const pos = getTilePosition(tile, {
+    ...cfg,
+    tileW: cfg.inlineTileW,
+    tileH: cfg.inlineTileH,
+  });
 
   ctx.drawImage(
     img,
     pos.x,
     pos.y,
-    cfg.tileW,
-    cfg.tileH,
+    cfg.inlineTileW,
+    cfg.inlineTileH,
     0,
     0,
     canvasW,
@@ -403,8 +406,10 @@ export function TileImage({
     ? Math.ceil(relativeSizeFactor * 32)
     : displayHeight;
   const [src, setSrc] = useState<string | null>(null);
-  const aspectRatio = cfg.tileW / cfg.tileH;
-  const displayWidth = Math.round(cfg.tileW * (displayHeight / cfg.tileH));
+  const aspectRatio = cfg.inlineTileW / cfg.inlineTileH;
+  const displayWidth = Math.round(
+    cfg.inlineTileW * (displayHeight / cfg.inlineTileH)
+  );
 
   useEffect(() => {
     let cancelled = false;

@@ -1,5 +1,4 @@
 import { theme } from "antd";
-import { basePath } from "../basePath";
 
 import { HandImage } from "./HandImage";
 import {
@@ -60,7 +59,7 @@ export function TileSprite({
       style={{
         width,
         height: displayHeight,
-        backgroundImage: `url(${basePath}/tiles/${cfg.tilesImage})`,
+        backgroundImage: `url(${cfg.tilesImageUrl})`,
         backgroundPosition: `-${pos.x * scale}px -${pos.y * scale}px`,
         backgroundSize: `${SHEET_COLS * cfg.tileW * scale}px auto`,
         backgroundRepeat: "no-repeat",
@@ -125,7 +124,7 @@ function TiltedTileSprite({
       style={{
         width: calledW,
         height: calledH,
-        backgroundImage: `url(${basePath}/tiles/${cfg.calledImage})`,
+        backgroundImage: `url(${cfg.calledImageUrl})`,
         backgroundPosition: `-${col * calledW}px -${row * calledH}px`,
         backgroundSize: `${bgW}px ${bgH}px`,
         backgroundRepeat: "no-repeat",
@@ -164,7 +163,7 @@ function MeldUprightTileSprite({
       style={{
         width: w,
         height: h,
-        backgroundImage: `url(${basePath}/tiles/${cfg.meldUprightImage})`,
+        backgroundImage: `url(${cfg.meldUprightImageUrl})`,
         backgroundPosition: `-${col * w}px -${row * h}px`,
         backgroundSize: `${CALLED_SHEET_COLS * w}px ${4 * h}px`,
         backgroundRepeat: "no-repeat",
@@ -218,7 +217,7 @@ function MeldDisplay({
             />
           );
         }
-        if (cfg.meldUprightImage) {
+        if (cfg.meldUprightImageUrl) {
           return (
             <MeldUprightTileSprite
               key={i}
