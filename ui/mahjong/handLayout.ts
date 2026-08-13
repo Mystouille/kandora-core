@@ -7,6 +7,7 @@ import tenhouCalledTilesUrl from "./assets/tiles/tenhou/tilesCalledTenhou.png?ur
 import tenhouTilesUrl from "./assets/tiles/tenhou/tilesTenhou.png?url";
 import trainerCalledTilesUrl from "./assets/tiles/trainer/tilesCalledTrainer.png?url";
 import trainerTilesUrl from "./assets/tiles/trainer/tilesTrainer.png?url";
+import uzakuFlatUrl from "./assets/tiles/uzaku/uzakuFlat.png?url";
 
 /* ---------- tile set configuration ---------- */
 
@@ -14,6 +15,7 @@ export enum TileSetName {
   MahjongSoul = "default",
   Tenhou = "tenhou",
   Trainer = "trainer",
+  Uzaku = "uzaku",
 }
 
 export interface TileSetConfig {
@@ -42,6 +44,8 @@ export interface TileSetConfig {
   lightBorder?: boolean;
   /** Border radius in spritesheet pixels (scaled proportionally). Default 0. */
   borderRadius?: number;
+  /** Rotate upright atlas cells clockwise when rendering called tiles. */
+  rotateCalledFromUpright?: boolean;
 }
 
 export const TILE_SETS: Record<TileSetName, TileSetConfig> = {
@@ -86,6 +90,18 @@ export const TILE_SETS: Record<TileSetName, TileSetConfig> = {
     tileGap: 2,
     lightBorder: true,
     borderRadius: 22,
+  },
+  [TileSetName.Uzaku]: {
+    tileW: 154,
+    tileH: 215,
+    inlineTileW: 154,
+    inlineTileH: 215,
+    inlineTilesImageUrl: uzakuFlatUrl,
+    calledW: 215,
+    calledH: 154,
+    tilesImageUrl: uzakuFlatUrl,
+    calledImageUrl: uzakuFlatUrl,
+    rotateCalledFromUpright: true,
   },
 };
 

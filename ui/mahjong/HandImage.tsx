@@ -153,19 +153,38 @@ async function renderHandToDataUrl(
   for (const d of draws) {
     const dx = d.x * scaleFactor;
     if (d.tilted) {
-      const pos = getCalledTilePosition(d.tile, cfg);
       const yOffset = (cfg.tileH - cfg.calledH) * scaleFactor;
-      ctx.drawImage(
-        calledImg,
-        pos.x,
-        pos.y,
-        cfg.calledW,
-        cfg.calledH,
-        dx,
-        yOffset,
-        cfg.calledW * scaleFactor,
-        cfg.calledH * scaleFactor
-      );
+      if (cfg.rotateCalledFromUpright) {
+        const pos = getTilePosition(d.tile, cfg);
+        ctx.save();
+        ctx.translate(dx + cfg.calledW * scaleFactor, yOffset);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(
+          tilesImg,
+          pos.x,
+          pos.y,
+          cfg.tileW,
+          cfg.tileH,
+          0,
+          0,
+          cfg.calledH * scaleFactor,
+          cfg.calledW * scaleFactor
+        );
+        ctx.restore();
+      } else {
+        const pos = getCalledTilePosition(d.tile, cfg);
+        ctx.drawImage(
+          calledImg,
+          pos.x,
+          pos.y,
+          cfg.calledW,
+          cfg.calledH,
+          dx,
+          yOffset,
+          cfg.calledW * scaleFactor,
+          cfg.calledH * scaleFactor
+        );
+      }
     } else if (d.inMeld && meldUprightImg) {
       const pos = getMeldUprightPosition(d.tile, muW, muH, cfg);
       const yOffset = (cfg.tileH - muH) * scaleFactor;
