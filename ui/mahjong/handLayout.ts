@@ -8,6 +8,7 @@ import tenhouTilesUrl from "./assets/tiles/tenhou/tilesTenhou.png?url";
 import trainerCalledTilesUrl from "./assets/tiles/trainer/tilesCalledTrainer.png?url";
 import trainerTilesUrl from "./assets/tiles/trainer/tilesTrainer.png?url";
 import uzakuFlatUrl from "./assets/tiles/uzaku/uzakuFlat.png?url";
+import uzakuFlatLightBorderUrl from "./assets/tiles/uzaku/uzakuFlatLightBorder.png?url";
 
 /* ---------- tile set configuration ---------- */
 
@@ -18,22 +19,27 @@ export enum TileSetName {
   Uzaku = "uzaku",
 }
 
-export interface TileSetConfig {
+export interface TileSetImageUrls {
+  inlineTilesImageUrl: string;
+  tilesImageUrl: string;
+  calledImageUrl: string;
+  meldUprightImageUrl?: string;
+}
+
+export interface TileSetConfig extends TileSetImageUrls {
   tileW: number;
   tileH: number;
   inlineTileW: number;
   inlineTileH: number;
-  inlineTilesImageUrl: string;
   calledW: number;
   calledH: number;
-  tilesImageUrl: string;
-  calledImageUrl: string;
+  /** Optional spritesheet overrides used when the application is in dark mode. */
+  darkImageUrls?: Partial<TileSetImageUrls>;
   /** Row order for suits in the spritesheet. Default: s=0, m=1, p=2, z=3. */
   suitRows?: Record<string, number>;
   /** Scale factor for melded tiles (tilted + upright). Default 1. */
   meldScaleFactor?: number;
   /** Separate spritesheet for upright meld tiles (e.g. tenhou style). */
-  meldUprightImageUrl?: string;
   meldUprightW?: number;
   meldUprightH?: number;
   /** Global display scale factor applied to tileHeight. Default 1. */
@@ -101,9 +107,28 @@ export const TILE_SETS: Record<TileSetName, TileSetConfig> = {
     calledH: 154,
     tilesImageUrl: uzakuFlatUrl,
     calledImageUrl: uzakuFlatUrl,
+    darkImageUrls: {
+      inlineTilesImageUrl: uzakuFlatLightBorderUrl,
+      tilesImageUrl: uzakuFlatLightBorderUrl,
+      calledImageUrl: uzakuFlatLightBorderUrl,
+    },
     rotateCalledFromUpright: true,
   },
 };
+
+export function resolveTileSetImageUrls(
+  config: TileSetConfig,
+  isDark: boolean
+): TileSetImageUrls {
+  const imageUrls: TileSetImageUrls = {
+    inlineTilesImageUrl: config.inlineTilesImageUrl,
+    tilesImageUrl: config.tilesImageUrl,
+    calledImageUrl: config.calledImageUrl,
+    meldUprightImageUrl: config.meldUprightImageUrl,
+  };
+
+  return isDark ? { ...imageUrls, ...config.darkImageUrls } : imageUrls;
+}
 
 const DEFAULT_SUIT_ROWS: Record<string, number> = { s: 0, m: 1, p: 2, z: 3 };
 

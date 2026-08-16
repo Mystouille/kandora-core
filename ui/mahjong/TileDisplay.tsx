@@ -12,12 +12,27 @@ import {
   getMeldUprightPosition,
   getTilePosition,
   parseHand,
+  resolveTileSetImageUrls,
 } from "./handLayout";
 
 // Re-export for back-compat with existing import sites.
 export { splitHandTiles } from "./handLayout";
 
 const SHEET_COLS = 10;
+
+function useTileSetRenderConfig(tileSet: TileSetName) {
+  const config = TILE_SETS[tileSet];
+  const { token } = theme.useToken();
+  const isDark =
+    (token.colorBgBase ?? "").startsWith("#0") ||
+    (token.colorBgBase ?? "").startsWith("#1");
+
+  return {
+    config,
+    imageUrls: resolveTileSetImageUrls(config, isDark),
+    isDark,
+  };
+}
 
 interface TileSpriteProps {
   /** Tile code, e.g. "1m", "5p", "9s" */
@@ -39,11 +54,7 @@ export function TileSprite({
   style,
   className,
 }: TileSpriteProps) {
-  const cfg: TileSetConfig = TILE_SETS[tileSet];
-  const { token } = theme.useToken();
-  const isDark =
-    (token.colorBgBase ?? "").startsWith("#0") ||
-    (token.colorBgBase ?? "").startsWith("#1");
+  const { config: cfg, imageUrls, isDark } = useTileSetRenderConfig(tileSet);
   const showBorder = !!(cfg.lightBorder && !isDark);
   const scale = height / cfg.tileH;
   const borderRadiusPx = cfg.borderRadius
@@ -59,7 +70,7 @@ export function TileSprite({
       style={{
         width,
         height: displayHeight,
-        backgroundImage: `url(${cfg.tilesImageUrl})`,
+        backgroundImage: `url(${imageUrls.tilesImageUrl})`,
         backgroundPosition: `-${pos.x * scale}px -${pos.y * scale}px`,
         backgroundSize: `${SHEET_COLS * cfg.tileW * scale}px auto`,
         backgroundRepeat: "no-repeat",
@@ -100,11 +111,7 @@ function TiltedTileSprite({
   height: number;
   tileSet?: TileSetName;
 }) {
-  const cfg: TileSetConfig = TILE_SETS[tileSet];
-  const { token } = theme.useToken();
-  const isDark =
-    (token.colorBgBase ?? "").startsWith("#0") ||
-    (token.colorBgBase ?? "").startsWith("#1");
+  const { config: cfg, imageUrls, isDark } = useTileSetRenderConfig(tileSet);
   const showBorder = !!(cfg.lightBorder && !isDark);
   const msf = cfg.meldScaleFactor ?? 1;
   const scale = (height / cfg.tileH) * msf;
@@ -124,7 +131,7 @@ function TiltedTileSprite({
       style={{
         width: calledW,
         height: calledH,
-        backgroundImage: `url(${cfg.calledImageUrl})`,
+        backgroundImage: `url(${imageUrls.calledImageUrl})`,
         backgroundPosition: `-${col * calledW}px -${row * calledH}px`,
         backgroundSize: `${bgW}px ${bgH}px`,
         backgroundRepeat: "no-repeat",
@@ -141,10 +148,12 @@ function TiltedTileSprite({
 function MeldUprightTileSprite({
   tile,
   height,
+  imageUrl,
   tileSet = TileSetName.MahjongSoul,
 }: {
   tile: string;
   height: number;
+  imageUrl: string;
   tileSet?: TileSetName;
 }) {
   const cfg: TileSetConfig = TILE_SETS[tileSet];
@@ -163,7 +172,7 @@ function MeldUprightTileSprite({
       style={{
         width: w,
         height: h,
-        backgroundImage: `url(${cfg.meldUprightImageUrl})`,
+        backgroundImage: `url(${imageUrl})`,
         backgroundPosition: `-${col * w}px -${row * h}px`,
         backgroundSize: `${CALLED_SHEET_COLS * w}px ${4 * h}px`,
         backgroundRepeat: "no-repeat",
@@ -183,7 +192,9 @@ function MeldDisplay({
   tileHeight: number;
   tileSet?: TileSetName;
 }) {
-  const cfg: TileSetConfig = TILE_SETS[tileSet ?? TileSetName.MahjongSoul];
+  const { imageUrls } = useTileSetRenderConfig(
+    tileSet ?? TileSetName.MahjongSoul
+  );
   const tiles = [...meld.tiles];
   // 8z is the back tile sprite (col 7 of honors row); render as-is.
   const displayTiles = tiles;
@@ -217,12 +228,13 @@ function MeldDisplay({
             />
           );
         }
-        if (cfg.meldUprightImageUrl) {
+        if (imageUrls.meldUprightImageUrl) {
           return (
             <MeldUprightTileSprite
               key={i}
               tile={tile}
               height={tileHeight}
+              imageUrl={imageUrls.meldUprightImageUrl}
               tileSet={tileSet}
             />
           );

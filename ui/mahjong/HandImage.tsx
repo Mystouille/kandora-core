@@ -10,6 +10,7 @@ import {
   getMeldUprightPosition,
   getTilePosition,
   parseHand,
+  resolveTileSetImageUrls,
 } from "./handLayout";
 
 // Re-export config types/values that other modules import from this file.
@@ -295,17 +296,26 @@ export function HandImage({
 
   useEffect(() => {
     let cancelled = false;
-    renderHandToDataUrl(hand, cfg, drawBorder, scale, separateLastTile).then(
-      (url) => {
-        if (!cancelled) {
-          setSrc(url);
-        }
+    const renderConfig = TILE_SETS[tileSet];
+    const themedConfig = {
+      ...renderConfig,
+      ...resolveTileSetImageUrls(renderConfig, isDark),
+    };
+    renderHandToDataUrl(
+      hand,
+      themedConfig,
+      drawBorder,
+      scale,
+      separateLastTile
+    ).then((url) => {
+      if (!cancelled) {
+        setSrc(url);
       }
-    );
+    });
     return () => {
       cancelled = true;
     };
-  }, [hand, tileSet, drawBorder, scale, separateLastTile]);
+  }, [hand, tileSet, isDark, drawBorder, scale, separateLastTile]);
 
   if (!src) {
     return null;
@@ -432,15 +442,22 @@ export function TileImage({
 
   useEffect(() => {
     let cancelled = false;
-    renderTileToDataUrl(tile, cfg, renderHeight, drawBorder).then((url) => {
-      if (!cancelled) {
-        setSrc(url);
+    const renderConfig = TILE_SETS[tileSet];
+    const themedConfig = {
+      ...renderConfig,
+      ...resolveTileSetImageUrls(renderConfig, isDark),
+    };
+    renderTileToDataUrl(tile, themedConfig, renderHeight, drawBorder).then(
+      (url) => {
+        if (!cancelled) {
+          setSrc(url);
+        }
       }
-    });
+    );
     return () => {
       cancelled = true;
     };
-  }, [tile, tileSet, renderHeight, drawBorder]);
+  }, [tile, tileSet, isDark, renderHeight, drawBorder]);
 
   if (!src) {
     return null;

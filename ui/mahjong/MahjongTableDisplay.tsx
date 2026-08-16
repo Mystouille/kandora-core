@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
+import { theme } from "antd";
 
 import honbaStickUrl from "./assets/sticks/honbaStick.png?url";
 import riichiStickUrl from "./assets/sticks/riichiStick.png?url";
 import uzakuFlatDarkUrl from "./assets/tiles/uzaku/uzakuFlatDark.png?url";
+import uzakuFlatDarkLightBorderUrl from "./assets/tiles/uzaku/uzakuFlatDarkLightBorder.png?url";
 import {
   MeldSource,
   MeldType,
@@ -10,6 +12,7 @@ import {
   TileSetName,
   getTilePosition,
   parseHand,
+  resolveTileSetImageUrls,
   type MeldToDisplay,
   type ParsedHand,
 } from "./handLayout";
@@ -76,6 +79,16 @@ function TableTile({
   tsumogiri = false,
   style,
 }: TableTileProps) {
+  const { token } = theme.useToken();
+  const isDark =
+    (token.colorBgBase ?? "").startsWith("#0") ||
+    (token.colorBgBase ?? "").startsWith("#1");
+  const imageUrls = resolveTileSetImageUrls(UZAKU_CONFIG, isDark);
+  const tilesImageUrl =
+    kind === "dora" ? UZAKU_CONFIG.tilesImageUrl : imageUrls.tilesImageUrl;
+  const tsumogiriImageUrl = isDark
+    ? uzakuFlatDarkLightBorderUrl
+    : uzakuFlatDarkUrl;
   const position = getTilePosition(tile, UZAKU_CONFIG);
   const column = position.x / UZAKU_CONFIG.tileW;
   const row = position.y / UZAKU_CONFIG.tileH;
@@ -94,7 +107,7 @@ function TableTile({
       <span className="k-mahjong-table__tile-face">
         <img
           className="k-mahjong-table__tile-sheet"
-          src={tsumogiri ? uzakuFlatDarkUrl : UZAKU_CONFIG.tilesImageUrl}
+          src={tsumogiri ? tsumogiriImageUrl : tilesImageUrl}
           alt=""
           draggable={false}
           style={{
