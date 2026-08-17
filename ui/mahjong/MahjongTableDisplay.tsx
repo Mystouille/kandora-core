@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useEffect, useMemo, type CSSProperties } from "react";
 import { theme } from "antd";
 
 import honbaStickUrl from "./assets/sticks/honbaStick.png?url";
@@ -26,12 +26,17 @@ import {
   type MahjongTableStateV1,
   type MahjongTableWind,
 } from "./mahjongTableState";
+import {
+  getMahjongTableWarnings,
+  type MahjongTableWarning,
+} from "./mahjongTableWarnings";
 import "./MahjongTableDisplay.css";
 
 interface MahjongTableDisplayProps {
   state: MahjongTableStateV1;
   className?: string;
   ariaLabel?: string;
+  onWarningsChange?: (warnings: MahjongTableWarning[]) => void;
 }
 
 interface TableTileProps {
@@ -333,7 +338,7 @@ function DiscardPond({
 }
 
 function formatPoints(points: number): string {
-  return new Intl.NumberFormat("ja-JP").format(points);
+  return String(points);
 }
 
 function PlayerSeat({
@@ -428,8 +433,14 @@ export function MahjongTableDisplay({
   state,
   className,
   ariaLabel = "Mahjong table",
+  onWarningsChange,
 }: MahjongTableDisplayProps) {
   const geometryStyle = tableGeometryStyle(state);
+  const warnings = useMemo(() => getMahjongTableWarnings(state), [state]);
+
+  useEffect(() => {
+    onWarningsChange?.(warnings);
+  }, [onWarningsChange, warnings]);
 
   return (
     <div

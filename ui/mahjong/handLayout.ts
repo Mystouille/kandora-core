@@ -335,14 +335,21 @@ function parseMelds(meldStr: string): MeldToDisplay[] {
   function pushMeld() {
     const meld: MeldToDisplay = {
       source:
-        currentSource ?? (isCalled ? MeldSource.Shimocha : MeldSource.Self),
+        currentSource ??
+        (isCalled
+          ? MeldSource.Shimocha
+          : count === 3
+            ? MeldSource.Kamicha
+            : MeldSource.Self),
       type:
         currentType ??
         (isCalled
           ? count === 4
             ? MeldType.Daiminkan
             : MeldType.Pon
-          : MeldType.Ankan),
+          : count === 4
+            ? MeldType.Ankan
+            : MeldType.Pon),
       tiles: currentBlock.map((t) => t[0] + t[t.length - 1]),
     };
     if (
@@ -362,7 +369,8 @@ function parseMelds(meldStr: string): MeldToDisplay[] {
     }
     if (
       count === 3 &&
-      isCalled &&
+      (isCalled ||
+        currentBlock.every((currentTile) => currentTile === currentBlock[0])) &&
       tile[0] + tile[tile.length - 1] !== currentBlock[0]
     ) {
       pushMeld();
@@ -422,7 +430,8 @@ function parseMelds(meldStr: string): MeldToDisplay[] {
   }
   if (count === 3) {
     blocks.push({
-      source: currentSource ?? MeldSource.Shimocha,
+      source:
+        currentSource ?? (isCalled ? MeldSource.Shimocha : MeldSource.Kamicha),
       type: currentType ?? MeldType.Pon,
       tiles: currentBlock.map((t) => t[0] + t[t.length - 1]),
     });

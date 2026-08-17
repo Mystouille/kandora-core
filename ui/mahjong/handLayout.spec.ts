@@ -1,6 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import { TILE_SETS, TileSetName, resolveTileSetImageUrls } from "./handLayout";
+import {
+  MeldSource,
+  MeldType,
+  TILE_SETS,
+  TileSetName,
+  parseHand,
+  resolveTileSetImageUrls,
+} from "./handLayout";
+
+describe("parseHand", () => {
+  it("separates adjacent unmarked triplets", () => {
+    expect(parseHand("1234567p 444z333s").melds).toEqual([
+      {
+        tiles: ["4z", "4z", "4z"],
+        type: MeldType.Pon,
+        source: MeldSource.Kamicha,
+      },
+      {
+        tiles: ["3s", "3s", "3s"],
+        type: MeldType.Pon,
+        source: MeldSource.Kamicha,
+      },
+    ]);
+  });
+});
 
 describe("resolveTileSetImageUrls", () => {
   it("uses the light-border Uzaku atlas only in dark mode", () => {
