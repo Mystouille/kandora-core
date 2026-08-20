@@ -87,7 +87,8 @@ export class MajsoulApi {
       reqConnFields.web = { type: "string", id: 6 };
     }
     this.protobufRoot = Root.fromJSON(apiResources.protobufDefinition);
-    this.clientVersion = `web-${apiResources.version.slice(0, -2)}`;
+    const resourcePatch = apiResources.version.split(".")[2];
+    this.clientVersion = `WebGL_2022-0.16.${resourcePatch}`;
     //console.log(`Client version: [${this.clientVersion}]`);
     this.codec = new Codec(this.protobufRoot);
 

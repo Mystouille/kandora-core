@@ -451,7 +451,9 @@ function generatelog(mjslog: ReadonlyArray<GameStepRecord>): unknown[] {
   const kyoku = new Kyoku();
 
   mjslog.forEach((e: any, leafidx: number) => {
-    const name = e?.constructor?.name as string | undefined;
+    const name = (e?.$type?.name ?? e?.constructor?.name) as
+      | string
+      | undefined;
     switch (name) {
       case "RecordNewRound": {
         kyoku.init(e as RawNewRound);
