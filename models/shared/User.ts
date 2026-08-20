@@ -226,7 +226,10 @@ userSchema.index(
 );
 userSchema.index({ "discordIdentity.id": 1 }, { unique: true, sparse: true });
 
-export const UserModel = mongoose.model("User", userSchema);
+const createUserModel = () => mongoose.model("User", userSchema);
+export const UserModel =
+  (mongoose.models.User as ReturnType<typeof createUserModel> | undefined) ??
+  createUserModel();
 
 type RawUser = mongoose.InferSchemaType<typeof userSchema>;
 

@@ -19,10 +19,12 @@ const majsoulConfigSchema = new mongoose.Schema({
   loginCookies: { type: [cookieSchema], required: false },
 });
 
-export const MajsoulConfigModel = mongoose.model(
-  "MajsoulConfig",
-  majsoulConfigSchema
-);
+const createMajsoulConfigModel = () =>
+  mongoose.model("MajsoulConfig", majsoulConfigSchema);
+export const MajsoulConfigModel =
+  (mongoose.models.MajsoulConfig as
+    | ReturnType<typeof createMajsoulConfigModel>
+    | undefined) ?? createMajsoulConfigModel();
 export type MajsoulConfig = mongoose.InferSchemaType<
   typeof majsoulConfigSchema
 >;

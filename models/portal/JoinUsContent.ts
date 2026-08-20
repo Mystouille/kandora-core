@@ -8,10 +8,12 @@ const joinUsContentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const JoinUsContentModel = mongoose.model(
-  "JoinUsContent",
-  joinUsContentSchema
-);
+const createJoinUsContentModel = () =>
+  mongoose.model("JoinUsContent", joinUsContentSchema);
+export const JoinUsContentModel =
+  (mongoose.models.JoinUsContent as
+    | ReturnType<typeof createJoinUsContentModel>
+    | undefined) ?? createJoinUsContentModel();
 
 export type JoinUsContent = mongoose.InferSchemaType<
   typeof joinUsContentSchema

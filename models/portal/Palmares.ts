@@ -20,7 +20,11 @@ const palmaresSchema = new mongoose.Schema(
 
 palmaresSchema.index({ date: -1 });
 
-export const PalmaresModel = mongoose.model("Palmares", palmaresSchema);
+const createPalmaresModel = () => mongoose.model("Palmares", palmaresSchema);
+export const PalmaresModel =
+  (mongoose.models.Palmares as
+    | ReturnType<typeof createPalmaresModel>
+    | undefined) ?? createPalmaresModel();
 
 export type Palmares = mongoose.InferSchemaType<typeof palmaresSchema> & {
   _id: mongoose.Types.ObjectId;

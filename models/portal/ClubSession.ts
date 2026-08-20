@@ -62,9 +62,11 @@ const clubSessionSchema = new mongoose.Schema(
 
 clubSessionSchema.index({ date: 1 });
 
-export const ClubSessionModel = mongoose.model(
-  ClubSessionModelName,
-  clubSessionSchema
-);
+const createClubSessionModel = () =>
+  mongoose.model(ClubSessionModelName, clubSessionSchema);
+export const ClubSessionModel =
+  (mongoose.models[ClubSessionModelName] as
+    | ReturnType<typeof createClubSessionModel>
+    | undefined) ?? createClubSessionModel();
 export type ClubSession = mongoose.InferSchemaType<typeof clubSessionSchema>;
 export type Participant = mongoose.InferSchemaType<typeof participantSchema>;

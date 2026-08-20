@@ -24,10 +24,12 @@ const glossaryTermSchema = new mongoose.Schema(
 
 glossaryTermSchema.index({ tag: 1, name: 1 });
 
-export const GlossaryTermModel = mongoose.model(
-  "GlossaryTerm",
-  glossaryTermSchema
-);
+const createGlossaryTermModel = () =>
+  mongoose.model("GlossaryTerm", glossaryTermSchema);
+export const GlossaryTermModel =
+  (mongoose.models.GlossaryTerm as
+    | ReturnType<typeof createGlossaryTermModel>
+    | undefined) ?? createGlossaryTermModel();
 
 export type GlossaryTerm = mongoose.InferSchemaType<
   typeof glossaryTermSchema

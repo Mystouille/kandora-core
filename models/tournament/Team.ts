@@ -64,7 +64,11 @@ const teamSchema = new mongoose.Schema(
   }
 );
 
-export const TeamModel = mongoose.model(TeamModelName, teamSchema);
+const createTeamModel = () => mongoose.model(TeamModelName, teamSchema);
+export const TeamModel =
+  (mongoose.models[TeamModelName] as
+    | ReturnType<typeof createTeamModel>
+    | undefined) ?? createTeamModel();
 export type DbTeam = mongoose.InferSchemaType<typeof teamSchema>;
 
 export interface Roster {

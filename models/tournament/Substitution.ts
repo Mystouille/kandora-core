@@ -20,10 +20,12 @@ const substitutionSchema = new mongoose.Schema(
 
 substitutionSchema.index({ league: 1, team: 1 });
 
-export const SubstitutionModel = mongoose.model(
-  SubstitutionModelName,
-  substitutionSchema
-);
+const createSubstitutionModel = () =>
+  mongoose.model(SubstitutionModelName, substitutionSchema);
+export const SubstitutionModel =
+  (mongoose.models[SubstitutionModelName] as
+    | ReturnType<typeof createSubstitutionModel>
+    | undefined) ?? createSubstitutionModel();
 
 export type Substitution = mongoose.InferSchemaType<
   typeof substitutionSchema

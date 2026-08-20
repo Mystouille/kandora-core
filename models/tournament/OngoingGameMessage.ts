@@ -39,10 +39,12 @@ const ongoingGameMessageSchema = new mongoose.Schema(
 
 ongoingGameMessageSchema.index({ league: 1, gameId: 1 }, { unique: true });
 
-export const OngoingGameMessageModel = mongoose.model(
-  "OngoingGameMessage",
-  ongoingGameMessageSchema
-);
+const createOngoingGameMessageModel = () =>
+  mongoose.model("OngoingGameMessage", ongoingGameMessageSchema);
+export const OngoingGameMessageModel =
+  (mongoose.models.OngoingGameMessage as
+    | ReturnType<typeof createOngoingGameMessageModel>
+    | undefined) ?? createOngoingGameMessageModel();
 
 export type OngoingGameMessage = mongoose.InferSchemaType<
   typeof ongoingGameMessageSchema

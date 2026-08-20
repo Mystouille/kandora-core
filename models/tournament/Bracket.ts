@@ -24,7 +24,12 @@ const bracketSchema = new mongoose.Schema({
   seedings: [bracketSeedingSchema],
 });
 
-export const BracketModel = mongoose.model(BracketModelName, bracketSchema);
+const createBracketModel = () =>
+  mongoose.model(BracketModelName, bracketSchema);
+export const BracketModel =
+  (mongoose.models[BracketModelName] as
+    | ReturnType<typeof createBracketModel>
+    | undefined) ?? createBracketModel();
 export type DbBracket = mongoose.InferSchemaType<typeof bracketSchema> & {
   _id: mongoose.Types.ObjectId;
 };

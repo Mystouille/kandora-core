@@ -148,9 +148,11 @@ const leagueSchema = new mongoose.Schema({
   },
 });
 
+const createLeagueModel = () => mongoose.model(LeagueModelName, leagueSchema);
 export const LeagueModel =
-  mongoose.models[LeagueModelName] ??
-  mongoose.model(LeagueModelName, leagueSchema);
+  (mongoose.models[LeagueModelName] as
+    | ReturnType<typeof createLeagueModel>
+    | undefined) ?? createLeagueModel();
 
 /**
  * Returns a Mongoose filter object that matches leagues currently ongoing:

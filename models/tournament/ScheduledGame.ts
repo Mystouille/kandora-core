@@ -40,10 +40,12 @@ const scheduledGameSchema = new mongoose.Schema(
 
 scheduledGameSchema.index({ league: 1, phaseId: 1, scheduledAt: 1, _id: 1 });
 
-export const ScheduledGameModel = mongoose.model(
-  ScheduledGameModelName,
-  scheduledGameSchema
-);
+const createScheduledGameModel = () =>
+  mongoose.model(ScheduledGameModelName, scheduledGameSchema);
+export const ScheduledGameModel =
+  (mongoose.models[ScheduledGameModelName] as
+    | ReturnType<typeof createScheduledGameModel>
+    | undefined) ?? createScheduledGameModel();
 
 export type ScheduledGame = mongoose.InferSchemaType<
   typeof scheduledGameSchema

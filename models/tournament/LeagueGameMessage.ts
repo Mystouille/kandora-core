@@ -15,10 +15,12 @@ const leagueGameMessageSchema = new mongoose.Schema({
   ],
 });
 
-export const LeagueGameMessageModel = mongoose.model(
-  "LeagueGameMessage",
-  leagueGameMessageSchema
-);
+const createLeagueGameMessageModel = () =>
+  mongoose.model("LeagueGameMessage", leagueGameMessageSchema);
+export const LeagueGameMessageModel =
+  (mongoose.models.LeagueGameMessage as
+    | ReturnType<typeof createLeagueGameMessageModel>
+    | undefined) ?? createLeagueGameMessageModel();
 export type LeagueGameMessage = mongoose.InferSchemaType<
   typeof leagueGameMessageSchema
 >;

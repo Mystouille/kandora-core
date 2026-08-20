@@ -67,10 +67,12 @@ const gameRecordSchema = new mongoose.Schema({
   byUserData: [{ type: userGameRecordSchema, required: true }],
 });
 
-export const GameRecordModel = mongoose.model(
-  GameRecordModelName,
-  gameRecordSchema
-);
+const createGameRecordModel = () =>
+  mongoose.model(GameRecordModelName, gameRecordSchema);
+export const GameRecordModel =
+  (mongoose.models[GameRecordModelName] as
+    | ReturnType<typeof createGameRecordModel>
+    | undefined) ?? createGameRecordModel();
 
 export type DbGameRecord = mongoose.InferSchemaType<typeof gameRecordSchema>;
 /** Lean sub-document type for a single user's game record data. */

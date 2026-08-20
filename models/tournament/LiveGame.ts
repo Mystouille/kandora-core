@@ -62,7 +62,11 @@ const liveGameSchema = new mongoose.Schema(
 
 liveGameSchema.index({ league: 1, gameId: 1 }, { unique: true });
 
-export const LiveGameModel = mongoose.model("LiveGame", liveGameSchema);
+const createLiveGameModel = () => mongoose.model("LiveGame", liveGameSchema);
+export const LiveGameModel =
+  (mongoose.models.LiveGame as
+    | ReturnType<typeof createLiveGameModel>
+    | undefined) ?? createLiveGameModel();
 
 export type LiveGame = mongoose.InferSchemaType<typeof liveGameSchema> & {
   _id: mongoose.Types.ObjectId;

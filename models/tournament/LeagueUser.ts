@@ -23,9 +23,12 @@ const leagueUserSchema = new mongoose.Schema(
 
 leagueUserSchema.index({ leagueId: 1, userId: 1 }, { unique: true });
 
-export const LeagueUserModel =
-  mongoose.models[LeagueUserModelName] ??
+const createLeagueUserModel = () =>
   mongoose.model(LeagueUserModelName, leagueUserSchema);
+export const LeagueUserModel =
+  (mongoose.models[LeagueUserModelName] as
+    | ReturnType<typeof createLeagueUserModel>
+    | undefined) ?? createLeagueUserModel();
 
 export type DbLeagueUser = mongoose.InferSchemaType<typeof leagueUserSchema>;
 

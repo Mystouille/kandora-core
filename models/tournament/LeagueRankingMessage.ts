@@ -11,10 +11,12 @@ const leagueRankingMessageSchema = new mongoose.Schema({
   lastUpdatedAt: { type: Date, required: true },
 });
 
-export const LeagueRankingMessageModel = mongoose.model(
-  "LeagueRankingMessage",
-  leagueRankingMessageSchema
-);
+const createLeagueRankingMessageModel = () =>
+  mongoose.model("LeagueRankingMessage", leagueRankingMessageSchema);
+export const LeagueRankingMessageModel =
+  (mongoose.models.LeagueRankingMessage as
+    | ReturnType<typeof createLeagueRankingMessageModel>
+    | undefined) ?? createLeagueRankingMessageModel();
 export type LeagueRankingMessage = mongoose.InferSchemaType<
   typeof leagueRankingMessageSchema
 >;

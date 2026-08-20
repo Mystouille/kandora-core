@@ -88,10 +88,12 @@ const schedulingMessageSchema = new mongoose.Schema(
 
 schedulingMessageSchema.index({ league: 1, stageId: 1, roundIndex: 1 });
 
-export const SchedulingMessageModel = mongoose.model(
-  "SchedulingMessage",
-  schedulingMessageSchema
-);
+const createSchedulingMessageModel = () =>
+  mongoose.model("SchedulingMessage", schedulingMessageSchema);
+export const SchedulingMessageModel =
+  (mongoose.models.SchedulingMessage as
+    | ReturnType<typeof createSchedulingMessageModel>
+    | undefined) ?? createSchedulingMessageModel();
 
 export type SchedulingMessage = mongoose.InferSchemaType<
   typeof schedulingMessageSchema

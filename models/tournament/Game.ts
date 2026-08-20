@@ -91,7 +91,11 @@ const gameSchema = new mongoose.Schema(
   }
 );
 
-export const GameModel = mongoose.model(GameModelName, gameSchema);
+const createGameModel = () => mongoose.model(GameModelName, gameSchema);
+export const GameModel =
+  (mongoose.models[GameModelName] as
+    | ReturnType<typeof createGameModel>
+    | undefined) ?? createGameModel();
 export type DbGame = mongoose.InferSchemaType<typeof gameSchema>;
 /** Sub-document type for a single game result (plain object). */
 export type GameResult = {

@@ -18,10 +18,12 @@ const leagueTypeConfigSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const LeagueTypeConfigModel = mongoose.model(
-  LeagueTypeConfigModelName,
-  leagueTypeConfigSchema
-);
+const createLeagueTypeConfigModel = () =>
+  mongoose.model(LeagueTypeConfigModelName, leagueTypeConfigSchema);
+export const LeagueTypeConfigModel =
+  (mongoose.models[LeagueTypeConfigModelName] as
+    | ReturnType<typeof createLeagueTypeConfigModel>
+    | undefined) ?? createLeagueTypeConfigModel();
 
 export type DbLeagueTypeConfig = {
   _id: mongoose.Types.ObjectId;

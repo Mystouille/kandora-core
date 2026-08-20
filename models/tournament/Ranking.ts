@@ -9,5 +9,9 @@ const rankingSchema = new mongoose.Schema({
   timestamp: { type: Date, required: true, default: new Date() },
 });
 
-export const RankingModel = mongoose.model("Ranking", rankingSchema);
+const createRankingModel = () => mongoose.model("Ranking", rankingSchema);
+export const RankingModel =
+  (mongoose.models.Ranking as
+    | ReturnType<typeof createRankingModel>
+    | undefined) ?? createRankingModel();
 export type Ranking = mongoose.InferSchemaType<typeof rankingSchema>;

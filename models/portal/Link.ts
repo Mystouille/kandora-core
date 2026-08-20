@@ -19,7 +19,10 @@ const linkSchema = new mongoose.Schema(
 
 linkSchema.index({ type: 1, order: 1 });
 
-export const LinkModel = mongoose.model("Link", linkSchema);
+const createLinkModel = () => mongoose.model("Link", linkSchema);
+export const LinkModel =
+  (mongoose.models.Link as ReturnType<typeof createLinkModel> | undefined) ??
+  createLinkModel();
 
 export type Link = mongoose.InferSchemaType<typeof linkSchema> & {
   _id: mongoose.Types.ObjectId;

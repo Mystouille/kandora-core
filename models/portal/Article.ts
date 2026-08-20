@@ -48,7 +48,11 @@ const articleSchema = new mongoose.Schema(
 // Compound index for public queries
 articleSchema.index({ type: 1, status: 1, publishedAt: -1 });
 
-export const ArticleModel = mongoose.model("Article", articleSchema);
+const createArticleModel = () => mongoose.model("Article", articleSchema);
+export const ArticleModel =
+  (mongoose.models.Article as
+    | ReturnType<typeof createArticleModel>
+    | undefined) ?? createArticleModel();
 
 export type Article = mongoose.InferSchemaType<typeof articleSchema> & {
   _id: mongoose.Types.ObjectId;
