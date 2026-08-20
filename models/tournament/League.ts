@@ -25,6 +25,12 @@ const leagueSchema = new mongoose.Schema({
   startTime: { type: Date, required: true },
   phaseCutoffTimes: { type: [Date], required: false, default: [] },
   endTime: { type: Date, required: true },
+  hasSchedule: {
+    type: Boolean,
+    required: true,
+    default: false,
+    immutable: true,
+  },
   isIgnored: { type: Boolean, required: true, default: false },
   isDisplayed: { type: Boolean, required: true, default: true },
   rulesConfig: {

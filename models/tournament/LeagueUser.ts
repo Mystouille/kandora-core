@@ -15,6 +15,7 @@ const leagueUserSchema = new mongoose.Schema(
   {
     leagueId: { type: mongoose.Schema.Types.ObjectId, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    isParticipant: { type: Boolean, required: true, default: true },
     pictures: { type: picturePairSchema, required: false, default: null },
   },
   { timestamps: true }
@@ -31,10 +32,11 @@ export type DbLeagueUser = mongoose.InferSchemaType<typeof leagueUserSchema>;
 
 export type LeagueUser = Omit<
   DbLeagueUser,
-  "leagueId" | "userId" | "pictures"
+  "leagueId" | "userId" | "pictures" | "isParticipant"
 > & {
   _id: mongoose.Types.ObjectId;
   leagueId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
+  isParticipant: boolean;
   pictures: PicturePair | null;
 };
