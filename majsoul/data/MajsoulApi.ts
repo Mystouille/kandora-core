@@ -24,12 +24,9 @@ import type { Player } from "./types/Player";
 import { CustomLobbyConnection } from "./CustomLobbyConnection";
 import type { RecordGame } from "./types/RecordGame";
 
-// Static per-relay-profile values (formerly the MAJSOUL_DEVICE_ID / MAJSOUL_VERSION
-// env vars). The device UUID is oauth2Login's random_key; the version is the
-// client_version_string sent to oauth2Auth / oauth2Login / fetchGameRecord. Both
-// change rarely — when auth lapses you refresh the token, not these.
+// Static per-relay-profile value (formerly the MAJSOUL_DEVICE_ID env var).
+// The device UUID is oauth2Login's random_key.
 const MAJSOUL_DEVICE_ID = "009ed7aa-d155-4904-b350-71476261167d";
-const MAJSOUL_VERSION = "WebGL_2022-0.16.211";
 
 function randomContract(): string {
   const chars =
@@ -169,7 +166,6 @@ export class MajsoulApi {
     // clears the oauth2Auth 151 anti-bot gate. MAJSOUL_TOKEN / MAJSOUL_UID are
     // snooped from the Yostar `login` call (Data.UserInfo.Token / .ID).
     const type = 22;
-    this.clientVersion = MAJSOUL_VERSION;
 
     // The real client sends Route.requestConnection first; without it — or
     // without its field #6 = "Web" (injected into the proto in the constructor) —
@@ -188,7 +184,7 @@ export class MajsoulApi {
       type,
       code: token,
       uid,
-      client_version_string: MAJSOUL_VERSION,
+      client_version_string: this.clientVersion,
     });
 
     if (respOauth2Auth.error) {
@@ -238,7 +234,7 @@ export class MajsoulApi {
       random_key: MAJSOUL_DEVICE_ID,
       client_version: { resource: this.apiResources.version },
       currency_platforms: [1, 4, 5, 9, 12],
-      client_version_string: MAJSOUL_VERSION,
+      client_version_string: this.clientVersion,
       tag: "en",
     });
 
