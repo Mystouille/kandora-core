@@ -41,6 +41,15 @@ export interface IdentityLinkOutcome {
   body: Record<string, unknown>;
 }
 
+function isDuplicateKeyError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === 11000
+  );
+}
+
 /**
  * A "dummy" user is a placeholder with no real owner: no Discord identity
  * linked and no email registered. When a logged-in user claims a platform ID
@@ -92,19 +101,19 @@ export async function linkPlatformIdentity(
       return { status: lookup.status, body: { error: lookup.error } };
     }
 
-    const existing = await UserModel.findOne({
+    const existingUsers = await UserModel.find({
       "majsoulIdentity.friendId": trimmedId,
       _id: { $ne: currentUser._id },
-    });
-    if (existing) {
-      if (!isDummyUser(existing)) {
-        return {
-          status: 409,
-          body: {
-            error: "This Mahjong Soul ID is already linked to another account.",
-          },
-        };
-      }
+    }).exec();
+    if (existingUsers.some((user) => !isDummyUser(user))) {
+      return {
+        status: 409,
+        body: {
+          error: "This Mahjong Soul ID is already linked to another account.",
+        },
+      };
+    }
+    for (const existing of existingUsers) {
       await deps.transferUserReferences(currentUser._id, existing._id);
     }
 
@@ -126,20 +135,20 @@ export async function linkPlatformIdentity(
       return { status: lookup.status, body: { error: lookup.error } };
     }
 
-    const existingRC = await UserModel.findOne({
+    const existingUsers = await UserModel.find({
       "riichiCityIdentity.id": trimmedId,
       _id: { $ne: currentUser._id },
-    });
-    if (existingRC) {
-      if (!isDummyUser(existingRC)) {
-        return {
-          status: 409,
-          body: {
-            error: "This Riichi City ID is already linked to another account.",
-          },
-        };
-      }
-      await deps.transferUserReferences(currentUser._id, existingRC._id);
+    }).exec();
+    if (existingUsers.some((user) => !isDummyUser(user))) {
+      return {
+        status: 409,
+        body: {
+          error: "This Riichi City ID is already linked to another account.",
+        },
+      };
+    }
+    for (const existing of existingUsers) {
+      await deps.transferUserReferences(currentUser._id, existing._id);
     }
 
     updateData.riichiCityIdentity = {
@@ -156,20 +165,20 @@ export async function linkPlatformIdentity(
     }
   } else if (type === "tenhouId") {
     // Tenhou usernames are plain strings — the id IS the username.
-    const existingTenhou = await UserModel.findOne({
+    const existingUsers = await UserModel.find({
       "tenhouIdentity.name": trimmedId,
       _id: { $ne: currentUser._id },
-    });
-    if (existingTenhou) {
-      if (!isDummyUser(existingTenhou)) {
-        return {
-          status: 409,
-          body: {
-            error: "This Tenhou username is already linked to another account.",
-          },
-        };
-      }
-      await deps.transferUserReferences(currentUser._id, existingTenhou._id);
+    }).exec();
+    if (existingUsers.some((user) => !isDummyUser(user))) {
+      return {
+        status: 409,
+        body: {
+          error: "This Tenhou username is already linked to another account.",
+        },
+      };
+    }
+    for (const existing of existingUsers) {
+      await deps.transferUserReferences(currentUser._id, existing._id);
     }
 
     updateData.tenhouIdentity = { name: trimmedId };
@@ -180,11 +189,20 @@ export async function linkPlatformIdentity(
     };
   }
 
-  const updatedUser = await UserModel.findByIdAndUpdate(
-    userObjectId,
-    updateData,
-    { new: true }
-  );
+  let updatedUser;
+  try {
+    updatedUser = await UserModel.findByIdAndUpdate(userObjectId, updateData, {
+      new: true,
+    });
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      return {
+        status: 409,
+        body: { error: "This platform account is already linked." },
+      };
+    }
+    throw error;
+  }
 
   return {
     status: 200,

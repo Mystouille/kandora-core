@@ -5,6 +5,7 @@ export const GameModelName = "Game";
 const resultSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    /** Raw final table points before league uma/oka. */
     score: { type: Number, required: true },
     place: { type: Number, required: true },
     nbChombo: { type: Number, required: true },

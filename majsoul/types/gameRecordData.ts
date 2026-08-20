@@ -18,6 +18,8 @@ export type UsersRounds = {
   isOfficialSubstitute?: boolean;
   score?: number;
   place?: number;
+  /** Assigned only by app hydration via computePlayerDeltas; connectors must
+   * never copy a platform-computed delta into this field. */
   deltaPoints?: number;
 };
 

@@ -224,6 +224,7 @@ userSchema.index(
   { "riichiCityIdentity.id": 1 },
   { unique: true, sparse: true }
 );
+userSchema.index({ "tenhouIdentity.name": 1 }, { unique: true, sparse: true });
 userSchema.index({ "discordIdentity.id": 1 }, { unique: true, sparse: true });
 
 const createUserModel = () => mongoose.model("User", userSchema);

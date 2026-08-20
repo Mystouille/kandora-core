@@ -52,6 +52,7 @@ const userGameRecordSchema = new mongoose.Schema(
     teamName: { type: String, required: false },
     score: { type: Number, required: true },
     place: { type: Number, required: true },
+    /** App-derived cache computed from raw Game results + league rules. */
     deltaPoints: { type: Number, required: true },
     userId: { type: String, required: true },
     seat: { type: Number, required: true },
