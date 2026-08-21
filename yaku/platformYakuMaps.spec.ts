@@ -11,6 +11,7 @@ describe("riichiLibYakuToRomaji", () => {
       断么九: "1飜",
       ドラ: "2飜",
       赤ドラ: "1飜",
+      裏ドラ: "1飜",
     };
     expect(riichiLibYakuToRomaji(input)).toEqual({
       Riichi: "1飜",
@@ -19,6 +20,7 @@ describe("riichiLibYakuToRomaji", () => {
       Tanyao: "1飜",
       Dora: "2飜",
       "Aka Dora": "1飜",
+      "Ura Dora": "1飜",
     });
   });
 

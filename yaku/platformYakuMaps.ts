@@ -206,6 +206,7 @@ export const RIICHI_LIB_YAKU_TO_HAN: Record<string, Han> = {
   // Dora family (lib appends these in index.js after yaku check)
   ドラ: Han.Dora,
   赤ドラ: Han.Red_Five,
+  裏ドラ: Han.Ura_Dora,
 };
 
 /** Tenhou yaku id → canonical `Han`, or `undefined` if unknown. */
