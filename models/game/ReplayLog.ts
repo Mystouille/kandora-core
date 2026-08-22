@@ -50,6 +50,7 @@ const ReplayLogSchema = new Schema(
 );
 
 ReplayLogSchema.index({ source: 1, sourceGameId: 1 }, { unique: true });
+ReplayLogSchema.index({ source: 1, endedAt: -1 });
 
 export const ReplayLogModelName = "ReplayLog";
 
