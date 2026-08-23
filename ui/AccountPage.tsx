@@ -23,7 +23,11 @@ import { basePath } from "./basePath";
 import { DiscordOAuth } from "./discord-oauth";
 import type { CoreTranslations } from "../i18n/types";
 
-export default function AccountPage() {
+interface AccountPageProps {
+  setupReturnTo?: string;
+}
+
+export default function AccountPage({ setupReturnTo = "/" }: AccountPageProps) {
   const { t } = useLocale<CoreTranslations>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -134,7 +138,7 @@ export default function AccountPage() {
         message.success(t.account.saved);
         window.dispatchEvent(new Event("profile-updated"));
         if (isSetup) {
-          navigate("/", { replace: true });
+          navigate(setupReturnTo, { replace: true });
         }
       } else {
         message.error(data.error || t.account.saveError);
