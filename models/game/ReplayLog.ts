@@ -22,6 +22,7 @@ import mongoose, { Schema } from "mongoose";
 const ReplaySeatSchema = new Schema(
   {
     seat: { type: Number, required: true, min: 0, max: 3 },
+    userDbId: { type: Schema.Types.ObjectId, ref: "User", required: false },
     displayName: { type: String, required: true },
     finalScore: { type: Number, required: true },
     place: { type: Number, required: true, min: 1, max: 4 },
@@ -37,6 +38,11 @@ const ReplayLogSchema = new Schema(
       enum: ["ingame", "majsoul", "tenhou", "riichicity"],
     },
     sourceGameId: { type: String, required: true },
+    creationTriggeredBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
     ruleSet: { type: String, required: true },
     ruleSetDetails: { type: Schema.Types.Mixed, required: false },
     startedAt: { type: Number, required: true },
@@ -51,6 +57,9 @@ const ReplayLogSchema = new Schema(
 
 ReplayLogSchema.index({ source: 1, sourceGameId: 1 }, { unique: true });
 ReplayLogSchema.index({ source: 1, endedAt: -1 });
+ReplayLogSchema.index({ creationTriggeredBy: 1 });
+ReplayLogSchema.index({ source: 1, "seats.userDbId": 1 });
+ReplayLogSchema.index({ source: 1, "seats.displayName": 1 });
 
 export const ReplayLogModelName = "ReplayLog";
 

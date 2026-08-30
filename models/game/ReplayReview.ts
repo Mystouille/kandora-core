@@ -88,6 +88,8 @@ const ReplayReviewSchema = new Schema(
 
 // Helpful lookup index for "my reviews of game X".
 ReplayReviewSchema.index({ createdBy: 1, source: 1, sourceGameId: 1 });
+ReplayReviewSchema.index({ "reviewers.user": 1 });
+ReplayReviewSchema.index({ "edits.author": 1 });
 
 export const ReplayReviewModelName = "ReplayReview";
 

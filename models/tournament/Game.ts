@@ -93,6 +93,9 @@ const gameSchema = new mongoose.Schema(
 );
 
 const createGameModel = () => mongoose.model(GameModelName, gameSchema);
+gameSchema.index({ replayLogRef: 1 });
+gameSchema.index({ platform: 1, gameId: 1 });
+
 export const GameModel =
   (mongoose.models[GameModelName] as
     | ReturnType<typeof createGameModel>
