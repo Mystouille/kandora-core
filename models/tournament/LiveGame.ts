@@ -43,6 +43,8 @@ const liveGameSchema = new mongoose.Schema(
     gameId: { type: String, required: true },
     /** Tenhou spectator watch-id (equals `gameId` for Tenhou). */
     watchId: { type: String, required: false },
+    /** Canonical Tenhou completed-log id paired with `watchId`. */
+    canonicalGameId: { type: String, required: false },
     tableId: { type: String, required: false },
     status: {
       type: String,

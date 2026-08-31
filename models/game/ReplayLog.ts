@@ -38,6 +38,7 @@ const ReplayLogSchema = new Schema(
       enum: ["ingame", "majsoul", "tenhou", "riichicity"],
     },
     sourceGameId: { type: String, required: true },
+    sourceGameIdAliases: { type: [String], required: true, default: [] },
     creationTriggeredBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -56,6 +57,7 @@ const ReplayLogSchema = new Schema(
 );
 
 ReplayLogSchema.index({ source: 1, sourceGameId: 1 }, { unique: true });
+ReplayLogSchema.index({ source: 1, sourceGameIdAliases: 1 });
 ReplayLogSchema.index({ source: 1, endedAt: -1 });
 ReplayLogSchema.index({ creationTriggeredBy: 1 });
 ReplayLogSchema.index({ source: 1, "seats.userDbId": 1 });

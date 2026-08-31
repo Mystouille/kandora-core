@@ -16,6 +16,8 @@ const resultSchema = new mongoose.Schema(
 const gameSchema = new mongoose.Schema(
   {
     gameId: { type: String, required: false },
+    /** Temporary Tenhou live-spectator id paired with canonical `gameId`. */
+    watchId: { type: String, required: false },
     name: { type: String, required: false },
     platform: {
       type: String,
@@ -95,6 +97,7 @@ const gameSchema = new mongoose.Schema(
 const createGameModel = () => mongoose.model(GameModelName, gameSchema);
 gameSchema.index({ replayLogRef: 1 });
 gameSchema.index({ platform: 1, gameId: 1 });
+gameSchema.index({ platform: 1, watchId: 1 });
 
 export const GameModel =
   (mongoose.models[GameModelName] as
