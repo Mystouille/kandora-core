@@ -60,6 +60,14 @@ const ReplayReviewerSchema = new Schema(
   { _id: false }
 );
 
+const ReplayReviewTargetSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: false },
+    name: { type: String, required: true, trim: true },
+  },
+  { _id: false }
+);
+
 const ReplayReviewSchema = new Schema(
   {
     shortId: { type: String, required: true, unique: true, index: true },
@@ -78,6 +86,11 @@ const ReplayReviewSchema = new Schema(
     // Set lazily by the PUT handler the first time an edit is
     // persisted.
     seat: { type: Number, required: false, default: null, min: 0, max: 3 },
+    target: {
+      type: ReplayReviewTargetSchema,
+      required: false,
+      default: undefined,
+    },
     // Reviewers in first-contribution order; drives per-reviewer
     // color assignment across the whole review.
     reviewers: { type: [ReplayReviewerSchema], required: true, default: [] },
@@ -90,6 +103,7 @@ const ReplayReviewSchema = new Schema(
 ReplayReviewSchema.index({ createdBy: 1, source: 1, sourceGameId: 1 });
 ReplayReviewSchema.index({ "reviewers.user": 1 });
 ReplayReviewSchema.index({ "edits.author": 1 });
+ReplayReviewSchema.index({ "target.user": 1 }, { sparse: true });
 
 export const ReplayReviewModelName = "ReplayReview";
 
