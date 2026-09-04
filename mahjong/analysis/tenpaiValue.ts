@@ -3,6 +3,7 @@ import {
   scoreClosedHand,
   type ClosedHandScoreInput,
   type ClosedHandScoreResult,
+  type ClosedHandScorer,
   type OpenMeld,
 } from "./closedHandScore";
 import {
@@ -66,6 +67,7 @@ export interface FixedTenpaiInput {
   riichiStickValue?: number;
   uraDoraEnabled?: boolean;
   noAka?: boolean;
+  scoreHand?: ClosedHandScorer;
 }
 
 function probabilityOfAnySuccess(
@@ -152,11 +154,13 @@ function scoreWinMethods({
   winTile,
   hitProbability,
   uraDoraIndicators,
+  scoreHand = scoreClosedHand,
 }: {
   scoreInput: Omit<ClosedHandScoreInput, "winTile" | "tsumo">;
   winTile: Tile;
   hitProbability: number;
   uraDoraIndicators?: readonly Tile[];
+  scoreHand?: ClosedHandScorer;
 }): WinOutcomeValue[] {
   const methods: Array<{
     method: WinMethod;
@@ -176,7 +180,7 @@ function scoreWinMethods({
   ];
   const outcomes: WinOutcomeValue[] = [];
   for (const method of methods) {
-    const score = scoreClosedHand({
+    const score = scoreHand({
       ...scoreInput,
       winTile,
       tsumo: method.tsumo,
@@ -233,6 +237,7 @@ function valueWithoutUra(
       scoreInput,
       winTile: tile,
       hitProbability: probabilities.byTile.get(tile) ?? 0,
+      scoreHand: input.scoreHand,
     });
     return {
       tile,
@@ -497,6 +502,7 @@ function valueRiichiWithUra(
             winTile: targetWinTile,
             hitProbability: outcome.hitProbability,
             uraDoraIndicators: outcome.indicators,
+            scoreHand: input.scoreHand,
           });
           for (const scoredOutcome of scoredOutcomes) {
             if (scoredOutcome.uraDoraCount !== uraDoraCount) {

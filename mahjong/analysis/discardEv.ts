@@ -1,17 +1,20 @@
 import {
   assertValidOpenMeld,
+  createClosedHandScoreCache,
   doraToIndicator,
-  scoreClosedHand,
   type ClosedHandScoreResult,
+  type ClosedHandScorer,
   type OpenMeld,
   type ScoredYaku,
 } from "./closedHandScore";
 import {
   buildUnseenTilePool,
+  physicalTileKey,
   returnToPool,
   takeFromPool,
   tilePoolEntries,
   tilePoolKey,
+  tileMultisetKey,
   type RedFiveConfiguration,
   type TilePool,
 } from "./tilePool";
@@ -125,8 +128,11 @@ interface SearchContext {
   now: () => number;
   shouldAbort: () => boolean;
   deadline: number;
-  memo: Map<string, NodeValue>;
-  terminalMemo: Map<string, NodeValue>;
+  memo: Map<bigint, Map<bigint, NodeValue>>;
+  terminalMemo: Map<bigint, Map<bigint, NodeValue>>;
+  drawStateCount: bigint;
+  depthStateCount: bigint;
+  scoreHand: ClosedHandScorer;
   statesVisited: number;
   cacheHits: number;
   terminalCacheHits: number;
@@ -179,8 +185,12 @@ function sortedHand(hand: readonly Tile[]): Tile[] {
   return [...hand].sort(compareTiles);
 }
 
-function handKey(hand: readonly Tile[]): string {
-  return sortedHand(hand).join(",");
+function insertSortedTile(hand: readonly Tile[], tile: Tile): Tile[] {
+  let index = 0;
+  while (index < hand.length && compareTiles(hand[index], tile) <= 0) {
+    index++;
+  }
+  return [...hand.slice(0, index), tile, ...hand.slice(index)];
 }
 
 function checkAbort(context: SearchContext): void {
@@ -365,12 +375,15 @@ function prependExplanationStep(
 
 function terminalValue(
   hand: readonly Tile[],
+  handStateKey: bigint,
   pool: TilePool,
   drawsRemaining: number,
   context: SearchContext
 ): NodeValue {
-  const key = `${handKey(hand)}|${tilePoolKey(pool)}|${drawsRemaining}`;
-  const cached = context.terminalMemo.get(key);
+  const key =
+    tilePoolKey(pool) * context.drawStateCount + BigInt(drawsRemaining);
+  let handMemo = context.terminalMemo.get(handStateKey);
+  const cached = handMemo?.get(key);
   if (cached) {
     context.terminalCacheHits++;
     return cached;
@@ -386,8 +399,9 @@ function terminalValue(
     riichiStickValue: context.input.riichiStickValue,
     uraDoraEnabled: context.input.uraDoraEnabled,
     noAka: context.input.noAka,
+    scoreHand: context.scoreHand,
   });
-  const terminalHand = sortedHand(hand);
+  const terminalHand = [...hand];
   const paths: ExplanationPath[] = [];
   for (const wait of result.evaluation.waits) {
     for (const outcome of wait.outcomes) {
@@ -423,7 +437,11 @@ function terminalValue(
     riichiDeclarationProbability: result.evaluation.policy === "riichi" ? 1 : 0,
     ...explanation,
   };
-  context.terminalMemo.set(key, value);
+  if (!handMemo) {
+    handMemo = new Map();
+    context.terminalMemo.set(handStateKey, handMemo);
+  }
+  handMemo.set(key, value);
   return value;
 }
 
@@ -442,6 +460,7 @@ function compareNodeValues(left: NodeValue, right: NodeValue): number {
 
 function evaluateThirteenTileState(
   hand: readonly Tile[],
+  handStateKey: bigint,
   pool: TilePool,
   drawsRemaining: number,
   depthRemaining: number,
@@ -449,8 +468,12 @@ function evaluateThirteenTileState(
 ): NodeValue {
   checkAbort(context);
   context.statesVisited++;
-  const key = `${handKey(hand)}|${tilePoolKey(pool)}|${drawsRemaining}|${depthRemaining}`;
-  const cached = context.memo.get(key);
+  const key =
+    (tilePoolKey(pool) * context.drawStateCount + BigInt(drawsRemaining)) *
+      context.depthStateCount +
+    BigInt(depthRemaining);
+  let handMemo = context.memo.get(handStateKey);
+  const cached = handMemo?.get(key);
   if (cached) {
     context.cacheHits++;
     return cached;
@@ -458,24 +481,30 @@ function evaluateThirteenTileState(
 
   let value: NodeValue;
   if (shanten(hand, context.meldCount) === 0) {
-    value = terminalValue(hand, pool, drawsRemaining, context);
+    value = terminalValue(hand, handStateKey, pool, drawsRemaining, context);
   } else if (drawsRemaining === 0 || depthRemaining === 0 || pool.total === 0) {
     value = frontierValue();
   } else {
     value = evaluateDrawNode(
       hand,
+      handStateKey,
       pool,
       drawsRemaining,
       depthRemaining,
       context
     );
   }
-  context.memo.set(key, value);
+  if (!handMemo) {
+    handMemo = new Map();
+    context.memo.set(handStateKey, handMemo);
+  }
+  handMemo.set(key, value);
   return value;
 }
 
 function evaluateDrawNode(
   hand: readonly Tile[],
+  handStateKey: bigint,
   pool: TilePool,
   drawsRemaining: number,
   depthRemaining: number,
@@ -500,7 +529,8 @@ function evaluateDrawNode(
     let child: NodeValue;
     try {
       child = evaluateDiscardNode(
-        [...hand, tile],
+        insertSortedTile(hand, tile),
+        handStateKey + physicalTileKey(tile),
         pool,
         drawsRemaining - 1,
         depthRemaining - 1,
@@ -542,6 +572,7 @@ function evaluateDrawNode(
 
 function evaluateDiscardNode(
   hand: readonly Tile[],
+  handStateKey: bigint,
   pool: TilePool,
   drawsRemaining: number,
   depthRemaining: number,
@@ -549,13 +580,14 @@ function evaluateDiscardNode(
 ): NodeValue {
   let best: NodeValue | null = null;
   let bestTile: Tile | null = null;
-  const candidates = [...new Set(sortedHand(hand))];
+  const candidates = [...new Set(hand)];
   for (const tile of candidates) {
     checkAbort(context);
     const nextHand = [...hand];
     nextHand.splice(nextHand.indexOf(tile), 1);
     const value = evaluateThirteenTileState(
       nextHand,
+      handStateKey - physicalTileKey(tile),
       pool,
       drawsRemaining,
       depthRemaining,
@@ -590,17 +622,19 @@ function compareDiscards(
 
 function evaluateRoot(
   hand: readonly Tile[],
+  handStateKey: bigint,
   pool: TilePool,
   depth: number,
   context: SearchContext
 ): DiscardEvaluation[] {
   const evaluations: DiscardEvaluation[] = [];
-  for (const tile of [...new Set(sortedHand(hand))]) {
+  for (const tile of [...new Set(hand)]) {
     checkAbort(context);
     const nextHand = [...hand];
     nextHand.splice(nextHand.indexOf(tile), 1);
     const value = evaluateThirteenTileState(
       nextHand,
+      handStateKey - physicalTileKey(tile),
       pool,
       context.input.drawsRemaining,
       depth,
@@ -658,6 +692,9 @@ export function analyzeDiscardEv(
     deadline: start + input.timeBudgetMs,
     memo: new Map(),
     terminalMemo: new Map(),
+    drawStateCount: BigInt(input.drawsRemaining + 1),
+    depthStateCount: BigInt(input.maxDepth + 1),
+    scoreHand: createClosedHandScoreCache(),
     statesVisited: 0,
     cacheHits: 0,
     terminalCacheHits: 0,
@@ -674,7 +711,7 @@ export function analyzeDiscardEv(
 
   if (shanten(input.hand, context.meldCount) === -1) {
     const winTile = input.hand[input.hand.length - 1];
-    const score = scoreClosedHand({
+    const score = context.scoreHand({
       hand: input.hand.slice(0, -1),
       winTile,
       tsumo: true,
@@ -699,10 +736,18 @@ export function analyzeDiscardEv(
     };
   }
 
+  const searchHand = sortedHand(input.hand);
+  const searchHandStateKey = tileMultisetKey(searchHand);
   let lastComplete: DiscardEvResult | null = null;
   for (let depth = 0; depth <= input.maxDepth; depth++) {
     try {
-      const discards = evaluateRoot(input.hand, unseenPool, depth, context);
+      const discards = evaluateRoot(
+        searchHand,
+        searchHandStateKey,
+        unseenPool,
+        depth,
+        context
+      );
       lastComplete = snapshotResult(
         discards,
         depth,

@@ -16,6 +16,7 @@ export interface TilePoolInput {
 export interface TilePool {
   counts: number[];
   total: number;
+  packedKey?: bigint;
 }
 
 const suitedPhysicalTiles = (suit: Suit): Tile[] => [
@@ -47,6 +48,9 @@ export const PHYSICAL_TILE_TYPES: readonly Tile[] = [
 const TILE_INDEX = new Map(
   PHYSICAL_TILE_TYPES.map((tile, index) => [tile, index])
 );
+const PACKED_TILE_WEIGHTS = PHYSICAL_TILE_TYPES.map(
+  (_, index) => 5n ** BigInt(index)
+);
 
 const DEFAULT_RED_FIVES: RedFiveConfiguration = { m: 1, p: 1, s: 1 };
 
@@ -64,6 +68,18 @@ export function physicalTileIndex(tile: Tile): number {
     throw new Error(`Invalid tile notation: ${tile}`);
   }
   return index;
+}
+
+export function physicalTileKey(tile: Tile): bigint {
+  return PACKED_TILE_WEIGHTS[physicalTileIndex(tile)];
+}
+
+export function tileMultisetKey(tiles: readonly Tile[]): bigint {
+  let key = 0n;
+  for (const tile of tiles) {
+    key += physicalTileKey(tile);
+  }
+  return key;
 }
 
 function resolveRedFives(
@@ -94,7 +110,15 @@ function createFullPool(redFives: RedFiveConfiguration): TilePool {
     }
     return 4;
   });
-  return { counts, total: 136 };
+  return { counts, total: 136, packedKey: packTileCounts(counts) };
+}
+
+function packTileCounts(counts: readonly number[]): bigint {
+  let key = 0n;
+  for (let index = 0; index < counts.length; index++) {
+    key += BigInt(counts[index]) * PACKED_TILE_WEIGHTS[index];
+  }
+  return key;
 }
 
 function removeKnownTile(pool: TilePool, tile: Tile): void {
@@ -105,8 +129,10 @@ function removeKnownTile(pool: TilePool, tile: Tile): void {
   if (pool.counts[index] <= 0) {
     throw new Error(`${tile} has no configured copies available`);
   }
+  const packedKey = tilePoolKey(pool);
   pool.counts[index]--;
   pool.total--;
+  pool.packedKey = packedKey - PACKED_TILE_WEIGHTS[index];
 }
 
 export function buildUnseenTilePool(input: TilePoolInput): TilePool {
@@ -123,7 +149,11 @@ export function buildUnseenTilePool(input: TilePoolInput): TilePool {
 }
 
 export function cloneTilePool(pool: TilePool): TilePool {
-  return { counts: [...pool.counts], total: pool.total };
+  return {
+    counts: [...pool.counts],
+    total: pool.total,
+    packedKey: tilePoolKey(pool),
+  };
 }
 
 export function countInPool(pool: TilePool, tile: Tile): number {
@@ -135,13 +165,18 @@ export function takeFromPool(pool: TilePool, tile: Tile): void {
   if (pool.counts[index] <= 0) {
     throw new Error(`Cannot draw unavailable tile ${tile}`);
   }
+  const packedKey = tilePoolKey(pool);
   pool.counts[index]--;
   pool.total--;
+  pool.packedKey = packedKey - PACKED_TILE_WEIGHTS[index];
 }
 
 export function returnToPool(pool: TilePool, tile: Tile): void {
-  pool.counts[physicalTileIndex(tile)]++;
+  const index = physicalTileIndex(tile);
+  const packedKey = tilePoolKey(pool);
+  pool.counts[index]++;
   pool.total++;
+  pool.packedKey = packedKey + PACKED_TILE_WEIGHTS[index];
 }
 
 export function tilePoolEntries(
@@ -157,6 +192,7 @@ export function tilePoolEntries(
   return entries;
 }
 
-export function tilePoolKey(pool: TilePool): string {
-  return pool.counts.join("");
+export function tilePoolKey(pool: TilePool): bigint {
+  pool.packedKey ??= packTileCounts(pool.counts);
+  return pool.packedKey;
 }

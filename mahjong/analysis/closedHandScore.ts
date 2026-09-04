@@ -44,6 +44,10 @@ export interface ClosedHandScoreResult {
   text: string;
 }
 
+export type ClosedHandScorer = (
+  input: ClosedHandScoreInput
+) => ClosedHandScoreResult;
+
 interface RiichiRaw {
   isAgari: boolean;
   yakuman: number;
@@ -207,10 +211,11 @@ export function buildClosedRiichiInput(input: ClosedHandScoreInput): string {
   return [winningHand, ...melds, ...tail].join("+");
 }
 
-export function scoreClosedHand(
-  input: ClosedHandScoreInput
+function calculateClosedHandScore(
+  input: ClosedHandScoreInput,
+  riichiInput: string
 ): ClosedHandScoreResult {
-  const scorer = new Riichi(buildClosedRiichiInput(input));
+  const scorer = new Riichi(riichiInput);
   if (input.noAka) {
     scorer.disableAka();
   }
@@ -264,6 +269,52 @@ export function scoreClosedHand(
     oya: raw.oya,
     ko: raw.ko,
     text: raw.text,
+  };
+}
+
+export function scoreClosedHand(
+  input: ClosedHandScoreInput
+): ClosedHandScoreResult {
+  return calculateClosedHandScore(input, buildClosedRiichiInput(input));
+}
+
+function scoreCacheKey(
+  input: ClosedHandScoreInput,
+  riichiInput: string
+): string {
+  return JSON.stringify([
+    riichiInput,
+    input.noAka === true,
+    sortTiles((input.doraIndicators ?? []).map(indicatorToDora)),
+    sortTiles((input.uraDoraIndicators ?? []).map(indicatorToDora)),
+  ]);
+}
+
+export function createClosedHandScoreCache(
+  maxEntries = 4096
+): ClosedHandScorer {
+  if (!Number.isInteger(maxEntries) || maxEntries < 1) {
+    throw new Error("Score cache size must be a positive integer");
+  }
+  const cache = new Map<string, ClosedHandScoreResult>();
+  return (input) => {
+    const riichiInput = buildClosedRiichiInput(input);
+    const key = scoreCacheKey(input, riichiInput);
+    const cached = cache.get(key);
+    if (cached) {
+      cache.delete(key);
+      cache.set(key, cached);
+      return cached;
+    }
+    const result = calculateClosedHandScore(input, riichiInput);
+    if (cache.size >= maxEntries) {
+      const oldestKey = cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        cache.delete(oldestKey);
+      }
+    }
+    cache.set(key, result);
+    return result;
   };
 }
 

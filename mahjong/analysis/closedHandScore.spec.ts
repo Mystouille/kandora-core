@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { Han } from "../../types/Han";
-import { doraToIndicator, scoreClosedHand } from "./closedHandScore";
+import {
+  createClosedHandScoreCache,
+  doraToIndicator,
+  scoreClosedHand,
+} from "./closedHandScore";
 import type { Tile } from "../rules/types";
 
 function tiles(notation: string): Tile[] {
@@ -100,5 +104,28 @@ describe("scoreClosedHand", () => {
     expect(() =>
       scoreClosedHand({ hand: tiles("12m"), winTile: "3m", tsumo: true })
     ).toThrow(/13 concealed tiles/i);
+  });
+
+  it("caches complete inputs without conflating regular and ura dora", () => {
+    const score = createClosedHandScoreCache();
+    const input = {
+      hand: tiles("234m234p11s23445s"),
+      winTile: "6s" as Tile,
+      tsumo: true,
+      riichi: true,
+    };
+    const regularDora = score({ ...input, doraIndicators: ["1m"] });
+
+    expect(score({ ...input, doraIndicators: ["1m"] })).toBe(regularDora);
+
+    const uraDora = score({ ...input, uraDoraIndicators: ["1m"] });
+    expect(uraDora).not.toBe(regularDora);
+    expect(regularDora.doraCount).toBe(1);
+    expect(regularDora.uraDoraCount).toBe(0);
+    expect(uraDora.doraCount).toBe(0);
+    expect(uraDora.uraDoraCount).toBe(1);
+    expect(score({ ...input, doraIndicators: ["0m"] })).toBe(
+      score({ ...input, doraIndicators: ["5m"] })
+    );
   });
 });

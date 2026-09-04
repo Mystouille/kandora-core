@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildUnseenTilePool,
+  cloneTilePool,
   countInPool,
+  returnToPool,
+  takeFromPool,
+  tilePoolKey,
   type TilePoolInput,
 } from "./tilePool";
 
@@ -55,5 +59,17 @@ describe("buildUnseenTilePool", () => {
     expect(() => build({ visibleTiles: ["8z"] })).toThrow(
       /invalid tile notation/i
     );
+  });
+
+  it("maintains an exact key across pool mutations and cloning", () => {
+    const pool = build({ hand: ["1m", "0p", "7z"] });
+    const initialKey = tilePoolKey(pool);
+
+    takeFromPool(pool, "2s");
+    expect(tilePoolKey(pool)).not.toBe(initialKey);
+    returnToPool(pool, "2s");
+
+    expect(tilePoolKey(pool)).toBe(initialKey);
+    expect(tilePoolKey(cloneTilePool(pool))).toBe(initialKey);
   });
 });
