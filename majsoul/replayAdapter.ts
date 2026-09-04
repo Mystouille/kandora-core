@@ -40,7 +40,7 @@ import { Han } from "./data/enums";
 import type { GameEvent, Meld, Seat, Tile } from "~/game/protocol/messages";
 import { majsoulFanIdToHan } from "~/api/yaku/platformYakuMaps";
 import { hanRomaji } from "~/i18n/hanRomaji";
-import { sortYakuRecord } from "~/game/protocol/yakuOrder";
+import { sortYakuRecord } from "../mahjong/protocol/yakuOrder";
 import {
   REPLAY_LOG_SCHEMA_VERSION,
   type ReplayLog,
