@@ -19,6 +19,7 @@ export type TenpaiPolicy = "riichi" | "open";
 export type WinMethod = "tsumo" | "ron";
 
 export const TSUMO_WIN_PROBABILITY = 1 / 4;
+const WIN_OPPORTUNITIES_PER_TURN = 4;
 
 export interface FixedWaitProbabilityResult {
   winProbability: number;
@@ -88,6 +89,10 @@ function probabilityOfAnySuccess(
     missProbability *= (failureCount - drawIndex) / (totalCount - drawIndex);
   }
   return 1 - missProbability;
+}
+
+function remainingWinOpportunities(turnsRemaining: number): number {
+  return turnsRemaining * WIN_OPPORTUNITIES_PER_TURN;
 }
 
 export function fixedWaitHitProbabilities(
@@ -421,7 +426,7 @@ function valueRiichiWithUra(
     const probabilities = fixedWaitHitProbabilities(
       input.unseenPool,
       physicalWinningTiles,
-      input.drawsRemaining
+      remainingWinOpportunities(input.drawsRemaining)
     );
     return valueWithoutUra(
       input,
@@ -468,7 +473,7 @@ function valueRiichiWithUra(
         const conditionalWinProbability = probabilityOfAnySuccess(
           input.unseenPool.total - indicatorCount,
           successCount,
-          input.drawsRemaining
+          remainingWinOpportunities(input.drawsRemaining)
         );
         const jointProbability =
           (state.combinations / totalCombinations) *
@@ -563,7 +568,7 @@ export function valueFixedTenpai(input: FixedTenpaiInput): FixedTenpaiValue {
   const probabilities = fixedWaitHitProbabilities(
     input.unseenPool,
     winningTiles,
-    input.drawsRemaining
+    remainingWinOpportunities(input.drawsRemaining)
   );
   const evaluation =
     meldCount === 0

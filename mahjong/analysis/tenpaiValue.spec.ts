@@ -82,7 +82,7 @@ describe("valueFixedTenpai", () => {
     ["2m", 2],
   ]);
 
-  it("always values closed tenpai as riichi with 25% tsumo and 75% ron", () => {
+  it("uses four win opportunities per turn with 25% tsumo and 75% ron", () => {
     const result = valueFixedTenpai({
       hand,
       unseenPool: unseen,
@@ -90,7 +90,7 @@ describe("valueFixedTenpai", () => {
       riichiStickValue: 1000,
       uraDoraEnabled: false,
     });
-    const hitProbability = 5 / 12;
+    const hitProbability = 1 / 2;
     const weightedScore = (winTile: Tile): number => {
       const tsumo = scoreClosedHand({
         hand,
@@ -110,10 +110,9 @@ describe("valueFixedTenpai", () => {
       );
     };
     const expectedRiichi =
-      hitProbability * (weightedScore("6s") + weightedScore("9s")) -
-      1000 * (1 - 5 / 6);
+      hitProbability * (weightedScore("6s") + weightedScore("9s"));
 
-    expect(result.winProbability).toBeCloseTo(5 / 6, 12);
+    expect(result.winProbability).toBe(1);
     expect(result.evaluation.expectedValue).toBeCloseTo(expectedRiichi, 10);
     expect(result.evaluation.policy).toBe("riichi");
     expect(result).not.toHaveProperty("dama");
@@ -152,8 +151,8 @@ describe("valueFixedTenpai", () => {
     const normal = result.evaluation.waits.find((wait) => wait.tile === "5m");
     const red = result.evaluation.waits.find((wait) => wait.tile === "0m");
 
-    expect(normal?.hitProbability).toBeCloseTo(2 / 8, 12);
-    expect(red?.hitProbability).toBeCloseTo(1 / 8, 12);
+    expect(normal?.hitProbability).toBeCloseTo(13 / 21, 12);
+    expect(red?.hitProbability).toBeCloseTo(13 / 42, 12);
     expect(red?.score.akaDoraCount).toBe(1);
     expect(red!.score.ten).toBeGreaterThan(normal!.score.ten);
   });
@@ -175,7 +174,7 @@ describe("valueFixedTenpai", () => {
       "tsumo",
       "ron",
     ]);
-    expect(result.evaluation.winProbability).toBeCloseTo(1 / 4, 12);
+    expect(result.evaluation.winProbability).toBe(1);
   });
 
   it("values an open hand without riichi or ura", () => {
@@ -193,7 +192,7 @@ describe("valueFixedTenpai", () => {
     });
 
     expect(result.evaluation.policy).toBe("open");
-    expect(result.evaluation.winProbability).toBeCloseTo(5 / 6, 12);
+    expect(result.evaluation.winProbability).toBe(1);
     const outcomes = result.evaluation.waits.flatMap((wait) => wait.outcomes);
     expect(
       outcomes.some((outcome) =>
@@ -221,7 +220,7 @@ describe("valueFixedTenpai", () => {
       const probabilities = fixedWaitHitProbabilities(
         livePool,
         ["6s", "9s"],
-        2
+        2 * 4
       );
       for (const winTile of ["6s", "9s"] as Tile[]) {
         const hitProbability = probabilities.byTile.get(winTile) ?? 0;
