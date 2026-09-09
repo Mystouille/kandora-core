@@ -122,6 +122,33 @@ describe("analyzeDiscardEv", () => {
     expect(result.discards).not.toHaveLength(0);
   });
 
+  it("reports intra-depth progress and stops atomically at a state budget", () => {
+    const updates: Array<{ depth: number; statesVisited: number }> = [];
+    const result = analyzeDiscardEv(
+      {
+        hand,
+        drawsRemaining: 8,
+        maxDepth: 2,
+        timeBudgetMs: 30_000,
+        uraDoraEnabled: false,
+      },
+      {
+        maxStates: 10_000,
+        onSearchProgress: ({ depth, statesVisited }) => {
+          updates.push({ depth, statesVisited });
+        },
+      }
+    );
+
+    expect(result.completedDepth).toBe(1);
+    expect(result.stopReason).toBe("state-limit");
+    expect(result.truncated).toBe(true);
+    expect(updates.some((update) => update.depth === 2)).toBe(true);
+    expect(updates.at(-1)?.statesVisited).toBeGreaterThan(
+      result.metrics.statesVisited
+    );
+  });
+
   it("does not expand hands that cannot reach tenpai within the depth", () => {
     const farHand = tiles("147m258p369s1234z1m");
     const result = analyzeDiscardEv({

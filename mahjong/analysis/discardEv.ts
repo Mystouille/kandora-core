@@ -44,8 +44,21 @@ export interface DiscardEvInput {
 export interface DiscardEvRuntime {
   now?: () => number;
   shouldAbort?: () => boolean;
+  maxStates?: number;
   onDepthComplete?: (result: DiscardEvResult) => void;
+  onSearchProgress?: (progress: DiscardEvSearchProgress) => void;
 }
+
+export interface DiscardEvSearchProgress {
+  depth: number;
+  rootDiscardsCompleted: number;
+  rootDiscardCount: number;
+  statesVisited: number;
+  elapsedMs: number;
+  stateLimit: number | null;
+}
+
+export type DiscardEvStopReason = "cancelled" | "state-limit" | "time-limit";
 
 export interface DiscardEvaluation {
   tile: Tile;
@@ -107,6 +120,7 @@ export interface DiscardEvResult {
   immediateWin: ImmediateWinEvaluation | null;
   completedDepth: number;
   truncated: boolean;
+  stopReason?: DiscardEvStopReason;
   metrics: DiscardEvMetrics;
 }
 
@@ -139,6 +153,13 @@ interface SearchContext {
   meldCount: number;
   now: () => number;
   shouldAbort: () => boolean;
+  maxStates: number;
+  onSearchProgress?: (progress: DiscardEvSearchProgress) => void;
+  startedAt: number;
+  nextProgressAt: number;
+  activeDepth: number;
+  rootDiscardsCompleted: number;
+  rootDiscardCount: number;
   deadline: number;
   memo: Map<bigint, Map<bigint, NodeValue>>;
   terminalMemo: Map<bigint, Map<bigint, NodeValue>>;
@@ -158,7 +179,11 @@ interface SearchContext {
   terminalEvaluations: number;
 }
 
-class SearchAborted extends Error {}
+class SearchAborted extends Error {
+  constructor(readonly reason: DiscardEvStopReason) {
+    super(reason);
+  }
+}
 
 function resolveInput(input: DiscardEvInput): SearchContext["input"] {
   const drawsRemaining = input.drawsRemaining ?? 8;
@@ -213,9 +238,32 @@ function insertSortedTile(hand: readonly Tile[], tile: Tile): Tile[] {
   return [...hand.slice(0, index), tile, ...hand.slice(index)];
 }
 
+function emitSearchProgress(context: SearchContext, now: number): void {
+  context.nextProgressAt = now + 250;
+  context.onSearchProgress?.({
+    depth: context.activeDepth,
+    rootDiscardsCompleted: context.rootDiscardsCompleted,
+    rootDiscardCount: context.rootDiscardCount,
+    statesVisited: context.statesVisited,
+    elapsedMs: Math.max(0, now - context.startedAt),
+    stateLimit:
+      context.maxStates === Number.POSITIVE_INFINITY ? null : context.maxStates,
+  });
+}
+
 function checkAbort(context: SearchContext): void {
-  if (context.shouldAbort() || context.now() >= context.deadline) {
-    throw new SearchAborted();
+  const now = context.now();
+  if (context.shouldAbort()) {
+    throw new SearchAborted("cancelled");
+  }
+  if (context.statesVisited >= context.maxStates) {
+    throw new SearchAborted("state-limit");
+  }
+  if (now >= context.deadline) {
+    throw new SearchAborted("time-limit");
+  }
+  if (context.onSearchProgress && now >= context.nextProgressAt) {
+    emitSearchProgress(context, now);
   }
 }
 
@@ -711,7 +759,12 @@ function evaluateRoot(
   context: SearchContext
 ): DiscardEvaluation[] {
   const evaluations: DiscardEvaluation[] = [];
-  for (const tile of [...new Set(hand)]) {
+  const candidates = [...new Set(hand)];
+  context.activeDepth = depth;
+  context.rootDiscardsCompleted = 0;
+  context.rootDiscardCount = candidates.length;
+  emitSearchProgress(context, context.now());
+  for (const tile of candidates) {
     checkAbort(context);
     const nextHand = [...hand];
     nextHand.splice(nextHand.indexOf(tile), 1);
@@ -733,6 +786,8 @@ function evaluateRoot(
       ...rootValue,
       conditionalWinValue: conditionalWinValue(rootValue),
     });
+    context.rootDiscardsCompleted++;
+    emitSearchProgress(context, context.now());
   }
   return evaluations.sort(compareDiscards);
 }
@@ -774,6 +829,15 @@ export function analyzeDiscardEv(
   runtime: DiscardEvRuntime = {}
 ): DiscardEvResult {
   const input = resolveInput(rawInput);
+  const maxStates = runtime.maxStates ?? Number.POSITIVE_INFINITY;
+  if (
+    !(
+      maxStates === Number.POSITIVE_INFINITY ||
+      (Number.isInteger(maxStates) && maxStates > 0)
+    )
+  ) {
+    throw new Error("maxStates must be a positive integer");
+  }
   const now = runtime.now ?? Date.now;
   const start = now();
   const scoreCacheStats: ClosedHandScoreCacheStats = {
@@ -787,6 +851,13 @@ export function analyzeDiscardEv(
     meldCount: input.melds?.length ?? 0,
     now,
     shouldAbort: runtime.shouldAbort ?? (() => false),
+    maxStates,
+    onSearchProgress: runtime.onSearchProgress,
+    startedAt: start,
+    nextProgressAt: start,
+    activeDepth: 0,
+    rootDiscardsCompleted: 0,
+    rootDiscardCount: 0,
     deadline: start + input.timeBudgetMs,
     memo: new Map(),
     terminalMemo: new Map(),
@@ -855,6 +926,7 @@ export function analyzeDiscardEv(
   const searchHand = sortedHand(input.hand);
   const searchHandStateKey = tileMultisetKey(searchHand);
   let lastComplete: DiscardEvResult | null = null;
+  let stopReason: DiscardEvStopReason | undefined;
   for (let depth = 0; depth <= input.maxDepth; depth++) {
     try {
       const discards = evaluateRoot(
@@ -874,6 +946,7 @@ export function analyzeDiscardEv(
       runtime.onDepthComplete?.(lastComplete);
     } catch (error) {
       if (error instanceof SearchAborted) {
+        stopReason = error.reason;
         break;
       }
       throw error;
@@ -886,6 +959,7 @@ export function analyzeDiscardEv(
   return {
     ...lastComplete,
     truncated: lastComplete.completedDepth < input.maxDepth,
+    stopReason,
     metrics: {
       ...lastComplete.metrics,
       elapsedMs: Math.max(0, now() - start),
