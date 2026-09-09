@@ -328,7 +328,7 @@ function representativeIndicators(group: UraGroup, count: number): Tile[] {
 function buildUraGroups(
   input: FixedTenpaiInput,
   targetWinTile: Tile,
-  physicalWinningTiles: readonly Tile[]
+  waitIndexByTile: ReadonlyMap<Tile, number>
 ): UraGroup[] {
   const finalHand = [
     ...input.hand,
@@ -341,7 +341,7 @@ function buildUraGroups(
     const uraHan = finalHand.filter(
       (tile) => normalizeTile(tile) === dora
     ).length;
-    const waitIndex = physicalWinningTiles.indexOf(entry.tile);
+    const waitIndex = waitIndexByTile.get(entry.tile) ?? -1;
     const key = `${uraHan}|${waitIndex}`;
     const group = groups.get(key);
     if (group) {
@@ -363,6 +363,7 @@ function enumerateUraStates(
   input: FixedTenpaiInput,
   targetWinTile: Tile,
   physicalWinningTiles: readonly Tile[],
+  waitIndexByTile: ReadonlyMap<Tile, number>,
   indicatorCount: number
 ): UraState[] {
   let states = new Map<string, UraState>();
@@ -375,11 +376,7 @@ function enumerateUraStates(
     indicators: [],
   });
 
-  for (const group of buildUraGroups(
-    input,
-    targetWinTile,
-    physicalWinningTiles
-  )) {
+  for (const group of buildUraGroups(input, targetWinTile, waitIndexByTile)) {
     const nextStates = new Map<string, UraState>();
     for (const state of states.values()) {
       const maxSelected = Math.min(
@@ -445,6 +442,9 @@ function valueRiichiWithUra(
   const waitCounts = physicalWinningTiles.map((tile) =>
     countInPool(input.unseenPool, tile)
   );
+  const waitIndexByTile = new Map(
+    physicalWinningTiles.map((tile, index) => [tile, index])
+  );
   const totalCombinations = combination(input.unseenPool.total, indicatorCount);
   const waitValues = physicalWinningTiles.map<TenpaiWaitValue>(
     (targetWinTile, targetWaitIndex) => {
@@ -456,6 +456,7 @@ function valueRiichiWithUra(
         input,
         targetWinTile,
         physicalWinningTiles,
+        waitIndexByTile,
         indicatorCount
       );
       for (const state of states) {

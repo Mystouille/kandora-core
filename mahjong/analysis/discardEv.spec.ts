@@ -122,6 +122,39 @@ describe("analyzeDiscardEv", () => {
     expect(result.discards).not.toHaveLength(0);
   });
 
+  it("does not expand hands that cannot reach tenpai within the depth", () => {
+    const farHand = tiles("147m258p369s1234z1m");
+    const result = analyzeDiscardEv({
+      hand: farHand,
+      drawsRemaining: 8,
+      maxDepth: 1,
+      timeBudgetMs: 5_000,
+      uraDoraEnabled: false,
+    });
+
+    expect(result.completedDepth).toBe(1);
+    expect(
+      result.discards.every((discard) => discard.frontierProbability === 1)
+    ).toBe(true);
+    expect(result.metrics.statesVisited).toBeLessThanOrEqual(
+      new Set(farHand).size * 2
+    );
+  });
+
+  it("skips discard expansion for non-improving boundary draws", () => {
+    const result = analyzeDiscardEv({
+      hand: tiles("77m12279p4457s77z8p"),
+      drawsRemaining: 2,
+      maxDepth: 2,
+      timeBudgetMs: 5_000,
+      uraDoraEnabled: false,
+    });
+
+    expect(result.completedDepth).toBe(2);
+    expect(result.bestDiscard?.shanten).toBe(2);
+    expect(result.metrics.nonImprovingDrawPrunes).toBeGreaterThan(0);
+  });
+
   it("merges winning paths by their yaku set and keeps one example hand", () => {
     const result = analyzeDiscardEv({
       hand: tiles("123m123p123s45s11z2z"),

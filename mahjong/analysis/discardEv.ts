@@ -2,6 +2,7 @@ import {
   assertValidOpenMeld,
   createClosedHandScoreCache,
   doraToIndicator,
+  type ClosedHandScoreCacheStats,
   type ClosedHandScoreResult,
   type ClosedHandScorer,
   type OpenMeld,
@@ -9,6 +10,7 @@ import {
 } from "./closedHandScore";
 import {
   buildUnseenTilePool,
+  normalizeTile,
   physicalTileKey,
   returnToPool,
   takeFromPool,
@@ -20,7 +22,7 @@ import {
 } from "./tilePool";
 import { valueFixedTenpai } from "./tenpaiValue";
 import { Han } from "../../types/Han";
-import { shanten } from "../rules/shanten";
+import { acceptanceTiles, shanten } from "../rules/shanten";
 import { compareTiles, type Tile, type Wind } from "../rules/types";
 
 export interface DiscardEvInput {
@@ -87,6 +89,16 @@ export interface DiscardEvMetrics {
   statesVisited: number;
   cacheHits: number;
   terminalCacheHits: number;
+  shantenPrunes: number;
+  drawNodes: number;
+  drawBranches: number;
+  discardBranches: number;
+  tsumogiriBranches: number;
+  nonImprovingDrawPrunes: number;
+  terminalEvaluations: number;
+  scoreCacheHits: number;
+  scoreCacheMisses: number;
+  scoreCacheEvictions: number;
 }
 
 export interface DiscardEvResult {
@@ -133,9 +145,17 @@ interface SearchContext {
   drawStateCount: bigint;
   depthStateCount: bigint;
   scoreHand: ClosedHandScorer;
+  scoreCacheStats: ClosedHandScoreCacheStats;
   statesVisited: number;
   cacheHits: number;
   terminalCacheHits: number;
+  shantenPrunes: number;
+  drawNodes: number;
+  drawBranches: number;
+  discardBranches: number;
+  tsumogiriBranches: number;
+  nonImprovingDrawPrunes: number;
+  terminalEvaluations: number;
 }
 
 class SearchAborted extends Error {}
@@ -199,25 +219,27 @@ function checkAbort(context: SearchContext): void {
   }
 }
 
+const FRONTIER_VALUE: NodeValue = {
+  expectedValue: 0,
+  grossExpectedValue: 0,
+  winProbability: 0,
+  tenpaiReachProbability: 0,
+  frontierProbability: 1,
+  riichiDeclarationProbability: 0,
+  paths: [
+    {
+      steps: [{ kind: "frontier" }],
+      outcome: "frontier",
+      probability: 1,
+      expectedValueContribution: 0,
+    },
+  ],
+  otherProbability: 0,
+  otherExpectedValueContribution: 0,
+};
+
 function frontierValue(): NodeValue {
-  return {
-    expectedValue: 0,
-    grossExpectedValue: 0,
-    winProbability: 0,
-    tenpaiReachProbability: 0,
-    frontierProbability: 1,
-    riichiDeclarationProbability: 0,
-    paths: [
-      {
-        steps: [{ kind: "frontier" }],
-        outcome: "frontier",
-        probability: 1,
-        expectedValueContribution: 0,
-      },
-    ],
-    otherProbability: 0,
-    otherExpectedValueContribution: 0,
-  };
+  return FRONTIER_VALUE;
 }
 
 function yakuIdentity(yaku: ScoredYaku): string {
@@ -388,6 +410,7 @@ function terminalValue(
     context.terminalCacheHits++;
     return cached;
   }
+  context.terminalEvaluations++;
   const result = valueFixedTenpai({
     hand,
     unseenPool: pool,
@@ -479,10 +502,18 @@ function evaluateThirteenTileState(
     return cached;
   }
 
+  const currentShanten = shanten(hand, context.meldCount);
   let value: NodeValue;
-  if (shanten(hand, context.meldCount) === 0) {
+  if (currentShanten === 0) {
     value = terminalValue(hand, handStateKey, pool, drawsRemaining, context);
-  } else if (drawsRemaining === 0 || depthRemaining === 0 || pool.total === 0) {
+  } else if (
+    drawsRemaining === 0 ||
+    currentShanten > depthRemaining ||
+    pool.total === 0
+  ) {
+    if (currentShanten > depthRemaining) {
+      context.shantenPrunes++;
+    }
     value = frontierValue();
   } else {
     value = evaluateDrawNode(
@@ -491,6 +522,7 @@ function evaluateThirteenTileState(
       pool,
       drawsRemaining,
       depthRemaining,
+      currentShanten,
       context
     );
   }
@@ -508,8 +540,10 @@ function evaluateDrawNode(
   pool: TilePool,
   drawsRemaining: number,
   depthRemaining: number,
+  currentShanten: number,
   context: SearchContext
 ): NodeValue {
+  context.drawNodes++;
   const aggregate: NodeValue = {
     expectedValue: 0,
     grossExpectedValue: 0,
@@ -522,15 +556,47 @@ function evaluateDrawNode(
     otherExpectedValueContribution: 0,
   };
   const total = pool.total;
+  const requiredImprovingDraws =
+    currentShanten === depthRemaining
+      ? new Set(
+          acceptanceTiles(hand, context.meldCount).map((tile) =>
+            normalizeTile(tile)
+          )
+        )
+      : null;
   for (const { tile, count } of tilePoolEntries(pool)) {
     checkAbort(context);
+    context.drawBranches++;
     const probability = count / total;
+    if (
+      requiredImprovingDraws &&
+      !requiredImprovingDraws.has(normalizeTile(tile))
+    ) {
+      context.nonImprovingDrawPrunes++;
+      const discardTile = compareTiles(hand[0], tile) <= 0 ? hand[0] : tile;
+      const child = prependExplanationStep(frontierValue(), {
+        kind: "discard",
+        tile: discardTile,
+      });
+      aggregate.frontierProbability += probability;
+      aggregate.paths.push(
+        ...child.paths.map((path) => ({
+          ...path,
+          steps: [{ kind: "draw" as const, tile }, ...path.steps],
+          probability: probability * path.probability,
+        }))
+      );
+      continue;
+    }
     takeFromPool(pool, tile);
     let child: NodeValue;
     try {
       child = evaluateDiscardNode(
         insertSortedTile(hand, tile),
         handStateKey + physicalTileKey(tile),
+        tile,
+        hand,
+        handStateKey,
         pool,
         drawsRemaining - 1,
         depthRemaining - 1,
@@ -573,6 +639,9 @@ function evaluateDrawNode(
 function evaluateDiscardNode(
   hand: readonly Tile[],
   handStateKey: bigint,
+  drawnTile: Tile,
+  preDrawHand: readonly Tile[],
+  preDrawHandStateKey: bigint,
   pool: TilePool,
   drawsRemaining: number,
   depthRemaining: number,
@@ -580,14 +649,28 @@ function evaluateDiscardNode(
 ): NodeValue {
   let best: NodeValue | null = null;
   let bestTile: Tile | null = null;
-  const candidates = [...new Set(hand)];
-  for (const tile of candidates) {
+  let previousTile: Tile | null = null;
+  for (let index = 0; index < hand.length; index++) {
+    const tile = hand[index];
+    if (tile === previousTile) {
+      continue;
+    }
+    previousTile = tile;
     checkAbort(context);
-    const nextHand = [...hand];
-    nextHand.splice(nextHand.indexOf(tile), 1);
+    context.discardBranches++;
+    const isTsumogiri = tile === drawnTile;
+    if (isTsumogiri) {
+      context.tsumogiriBranches++;
+    }
+    let nextHand: readonly Tile[] = preDrawHand;
+    if (!isTsumogiri) {
+      const discardedHand = [...hand];
+      discardedHand.splice(index, 1);
+      nextHand = discardedHand;
+    }
     const value = evaluateThirteenTileState(
       nextHand,
-      handStateKey - physicalTileKey(tile),
+      isTsumogiri ? preDrawHandStateKey : handStateKey - physicalTileKey(tile),
       pool,
       drawsRemaining,
       depthRemaining,
@@ -672,6 +755,16 @@ function snapshotResult(
       statesVisited: context.statesVisited,
       cacheHits: context.cacheHits,
       terminalCacheHits: context.terminalCacheHits,
+      shantenPrunes: context.shantenPrunes,
+      drawNodes: context.drawNodes,
+      drawBranches: context.drawBranches,
+      discardBranches: context.discardBranches,
+      tsumogiriBranches: context.tsumogiriBranches,
+      nonImprovingDrawPrunes: context.nonImprovingDrawPrunes,
+      terminalEvaluations: context.terminalEvaluations,
+      scoreCacheHits: context.scoreCacheStats.hits,
+      scoreCacheMisses: context.scoreCacheStats.misses,
+      scoreCacheEvictions: context.scoreCacheStats.evictions,
     },
   };
 }
@@ -683,6 +776,11 @@ export function analyzeDiscardEv(
   const input = resolveInput(rawInput);
   const now = runtime.now ?? Date.now;
   const start = now();
+  const scoreCacheStats: ClosedHandScoreCacheStats = {
+    hits: 0,
+    misses: 0,
+    evictions: 0,
+  };
   const context: SearchContext = {
     input,
     doraIndicators: (input.doraTiles ?? []).map(doraToIndicator),
@@ -694,10 +792,18 @@ export function analyzeDiscardEv(
     terminalMemo: new Map(),
     drawStateCount: BigInt(input.drawsRemaining + 1),
     depthStateCount: BigInt(input.maxDepth + 1),
-    scoreHand: createClosedHandScoreCache(),
+    scoreHand: createClosedHandScoreCache(4096, scoreCacheStats),
+    scoreCacheStats,
     statesVisited: 0,
     cacheHits: 0,
     terminalCacheHits: 0,
+    shantenPrunes: 0,
+    drawNodes: 0,
+    drawBranches: 0,
+    discardBranches: 0,
+    tsumogiriBranches: 0,
+    nonImprovingDrawPrunes: 0,
+    terminalEvaluations: 0,
   };
   const unseenPool = buildUnseenTilePool({
     hand: [
@@ -732,6 +838,16 @@ export function analyzeDiscardEv(
         statesVisited: 0,
         cacheHits: 0,
         terminalCacheHits: 0,
+        shantenPrunes: 0,
+        drawNodes: 0,
+        drawBranches: 0,
+        discardBranches: 0,
+        tsumogiriBranches: 0,
+        nonImprovingDrawPrunes: 0,
+        terminalEvaluations: 0,
+        scoreCacheHits: 0,
+        scoreCacheMisses: 0,
+        scoreCacheEvictions: 0,
       },
     };
   }

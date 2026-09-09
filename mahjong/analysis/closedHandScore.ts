@@ -48,6 +48,12 @@ export type ClosedHandScorer = (
   input: ClosedHandScoreInput
 ) => ClosedHandScoreResult;
 
+export interface ClosedHandScoreCacheStats {
+  hits: number;
+  misses: number;
+  evictions: number;
+}
+
 interface RiichiRaw {
   isAgari: boolean;
   yakuman: number;
@@ -291,7 +297,8 @@ function scoreCacheKey(
 }
 
 export function createClosedHandScoreCache(
-  maxEntries = 4096
+  maxEntries = 4096,
+  stats?: ClosedHandScoreCacheStats
 ): ClosedHandScorer {
   if (!Number.isInteger(maxEntries) || maxEntries < 1) {
     throw new Error("Score cache size must be a positive integer");
@@ -302,15 +309,24 @@ export function createClosedHandScoreCache(
     const key = scoreCacheKey(input, riichiInput);
     const cached = cache.get(key);
     if (cached) {
+      if (stats) {
+        stats.hits++;
+      }
       cache.delete(key);
       cache.set(key, cached);
       return cached;
+    }
+    if (stats) {
+      stats.misses++;
     }
     const result = calculateClosedHandScore(input, riichiInput);
     if (cache.size >= maxEntries) {
       const oldestKey = cache.keys().next().value;
       if (oldestKey !== undefined) {
         cache.delete(oldestKey);
+        if (stats) {
+          stats.evictions++;
+        }
       }
     }
     cache.set(key, result);
