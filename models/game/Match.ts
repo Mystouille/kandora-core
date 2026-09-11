@@ -57,6 +57,7 @@ const MatchSchema = new Schema(
     _id: { type: String, required: true }, // matchId (nanoid / uuid)
     ruleSet: { type: String, required: true, default: "tenhou-default" },
     seed: { type: Number, required: true },
+    mode: { type: Schema.Types.Mixed, required: false },
     status: {
       type: String,
       required: true,

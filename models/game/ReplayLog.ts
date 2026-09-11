@@ -45,6 +45,7 @@ const ReplayLogSchema = new Schema(
       required: false,
     },
     ruleSet: { type: String, required: true },
+    mode: { type: Schema.Types.Mixed, required: false },
     ruleSetDetails: { type: Schema.Types.Mixed, required: false },
     startedAt: { type: Number, required: true },
     endedAt: { type: Number, required: true },
