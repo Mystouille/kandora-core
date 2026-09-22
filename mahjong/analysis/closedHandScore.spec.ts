@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { Han } from "../../types/Han";
 import {
+  buildClosedRiichiInput,
   createClosedHandScoreCache,
   doraToIndicator,
   scoreClosedHand,
@@ -98,6 +99,44 @@ describe("scoreClosedHand", () => {
 
     expect(result.isAgari).toBe(true);
     expect(result.yaku.map((entry) => entry.id)).toContain(Han.White_Dragon);
+  });
+
+  it("keeps an ankan concealed while open kans remain open", () => {
+    const base = {
+      hand: tiles("123m456p78s11z"),
+      winTile: "9s" as Tile,
+      tsumo: false,
+      riichi: true,
+    };
+    const ankan = {
+      type: "ankan" as const,
+      tiles: ["5z", "5z", "5z", "5z"] as Tile[],
+    };
+    const daiminkan = { ...ankan, type: "daiminkan" as const };
+
+    expect(buildClosedRiichiInput({ ...base, melds: [ankan] })).toContain(
+      "+55z"
+    );
+    expect(buildClosedRiichiInput({ ...base, melds: [daiminkan] })).toContain(
+      "+5555z"
+    );
+    expect(
+      scoreClosedHand({ ...base, melds: [ankan] }).yaku.map(({ id }) => id)
+    ).toContain(Han.Riichi);
+  });
+
+  it("applies M-League kiriage mangan at four han thirty fu", () => {
+    const input = {
+      hand: tiles("234m234p11s23445s"),
+      winTile: "6s" as Tile,
+      tsumo: false,
+      riichi: true,
+      roundWind: "E" as const,
+      seatWind: "S" as const,
+    };
+
+    expect(scoreClosedHand(input).ten).toBe(7_700);
+    expect(scoreClosedHand({ ...input, kiriageMangan: true }).ten).toBe(8_000);
   });
 
   it("rejects a hand that does not contain thirteen pre-win tiles", () => {

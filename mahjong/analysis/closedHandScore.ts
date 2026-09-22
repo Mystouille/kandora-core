@@ -5,7 +5,7 @@ import { riichiLibYakuToHan } from "../../yaku/platformYakuMaps";
 import { compareTiles, type Tile, type Wind } from "../rules/types";
 
 export interface OpenMeld {
-  type: "chi" | "pon" | "kan";
+  type: "chi" | "pon" | "kan" | "ankan" | "daiminkan" | "shouminkan";
   tiles: readonly Tile[];
 }
 
@@ -19,6 +19,7 @@ export interface ClosedHandScoreInput {
   seatWind?: Wind;
   riichi?: boolean;
   noAka?: boolean;
+  kiriageMangan?: boolean;
   melds?: readonly OpenMeld[];
 }
 
@@ -111,11 +112,15 @@ function appendWinningTile(hand: string, winTile: Tile): string {
 
 function meldToGroup(meld: OpenMeld): string {
   assertValidOpenMeld(meld);
+  if (meld.type === "ankan") {
+    const tile = meld.tiles[0];
+    return `${tile[0]}${tile[0]}${tileSuit(tile)}`;
+  }
   return tilesToGroups(sortTiles(meld.tiles));
 }
 
 export function assertValidOpenMeld(meld: OpenMeld): void {
-  const expectedLength = meld.type === "kan" ? 4 : 3;
+  const expectedLength = meld.type === "chi" || meld.type === "pon" ? 3 : 4;
   if (meld.tiles.length !== expectedLength) {
     throw new Error(
       `${meld.type} meld must contain ${expectedLength} physical tiles`
@@ -124,7 +129,7 @@ export function assertValidOpenMeld(meld: OpenMeld): void {
   const normalized = meld.tiles.map(
     (tile) => `${tileNumber(tile)}${tileSuit(tile)}`
   );
-  if (meld.type === "pon" || meld.type === "kan") {
+  if (meld.type !== "chi") {
     if (new Set(normalized).size !== 1) {
       throw new Error(`${meld.type} meld must contain identical tiles`);
     }
@@ -226,6 +231,9 @@ function calculateClosedHandScore(
     scorer.disableAka();
   }
   const raw = scorer.calc() as RiichiRaw;
+  if (input.kiriageMangan) {
+    applyKiriageMangan(raw, input.tsumo, input.seatWind === "E");
+  }
   const winningTiles = [
     ...input.hand,
     input.winTile,
@@ -247,14 +255,16 @@ function calculateClosedHandScore(
   delete yakuRecord["ドラ"];
   delete yakuRecord["赤ドラ"];
   delete yakuRecord["裏ドラ"];
-  if (doraCount > 0) {
-    yakuRecord["ドラ"] = `${doraCount}飜`;
-  }
-  if (akaDoraCount > 0) {
-    yakuRecord["赤ドラ"] = `${akaDoraCount}飜`;
-  }
-  if ((input.uraDoraIndicators?.length ?? 0) > 0 && raw.yakuman === 0) {
-    yakuRecord["裏ドラ"] = `${uraDoraCount}飜`;
+  if (raw.yakuman === 0) {
+    if (doraCount > 0) {
+      yakuRecord["ドラ"] = `${doraCount}飜`;
+    }
+    if (akaDoraCount > 0) {
+      yakuRecord["赤ドラ"] = `${akaDoraCount}飜`;
+    }
+    if ((input.uraDoraIndicators?.length ?? 0) > 0) {
+      yakuRecord["裏ドラ"] = `${uraDoraCount}飜`;
+    }
   }
 
   return {
@@ -291,9 +301,31 @@ function scoreCacheKey(
   return JSON.stringify([
     riichiInput,
     input.noAka === true,
+    input.kiriageMangan === true,
     sortTiles((input.doraIndicators ?? []).map(indicatorToDora)),
     sortTiles((input.uraDoraIndicators ?? []).map(indicatorToDora)),
   ]);
+}
+
+function applyKiriageMangan(
+  raw: RiichiRaw,
+  isTsumo: boolean,
+  isDealer: boolean
+): void {
+  const isKiriageBoundary =
+    (raw.han === 4 && raw.fu === 30) || (raw.han === 3 && raw.fu === 60);
+  if (!raw.isAgari || raw.error || raw.yakuman > 0 || !isKiriageBoundary) {
+    return;
+  }
+  const base = 2_000;
+  if (isTsumo) {
+    raw.oya = [base * 2, base * 2, base * 2];
+    raw.ko = [base * 2, base, base];
+  } else {
+    raw.oya = [base * 6];
+    raw.ko = [base * 4];
+  }
+  raw.ten = isDealer ? base * 6 : base * 4;
 }
 
 export function createClosedHandScoreCache(
