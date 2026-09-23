@@ -122,6 +122,45 @@ function TiltedTileSprite({
   const calledH = Math.round(cfg.calledH * scale);
   const bgW = CALLED_SHEET_COLS * calledW;
   const bgH = 4 * calledH;
+
+  if (cfg.rotateCalledFromUpright) {
+    const uprightW = Math.round(cfg.tileW * scale);
+    const uprightH = Math.round(cfg.tileH * scale);
+    const uprightBgW = SHEET_COLS * uprightW;
+    const uprightBgH = 4 * uprightH;
+    const pos = getTilePosition(tile, cfg);
+    const col = pos.x / cfg.tileW;
+    const row = pos.y / cfg.tileH;
+
+    return (
+      <div
+        style={{
+          width: calledW,
+          height: calledH,
+          position: "relative",
+          overflow: "hidden",
+          flexShrink: 0,
+          outline: showBorder ? "1px solid #000" : undefined,
+          outlineOffset: showBorder ? "-1px" : undefined,
+          borderRadius: borderRadiusPx,
+        }}
+      >
+        <div
+          style={{
+            width: uprightW,
+            height: uprightH,
+            backgroundImage: `url(${imageUrls.tilesImageUrl})`,
+            backgroundPosition: `-${col * uprightW}px -${row * uprightH}px`,
+            backgroundSize: `${uprightBgW}px ${uprightBgH}px`,
+            backgroundRepeat: "no-repeat",
+            transformOrigin: "top left",
+            transform: `translateX(${calledW}px) rotate(90deg)`,
+          }}
+        />
+      </div>
+    );
+  }
+
   const pos = getCalledTilePosition(tile, cfg);
   const col = pos.x / cfg.calledW;
   const row = pos.y / cfg.calledH;
