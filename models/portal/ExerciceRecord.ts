@@ -12,7 +12,7 @@ const exerciceRecordSchema = new mongoose.Schema(
     },
     problemType: {
       type: String,
-      enum: ["pure-hand-waits", "wwyd", "chinitsu-nanikiru"],
+      enum: ["pure-hand-waits", "wwyd", "chinitsu-nanikiru", "scoring"],
       required: true,
     },
     difficulty: {
