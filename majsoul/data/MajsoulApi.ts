@@ -27,6 +27,21 @@ import type { RecordGame } from "./types/RecordGame";
 // Static per-relay-profile value (formerly the MAJSOUL_DEVICE_ID env var).
 // The device UUID is oauth2Login's random_key.
 const MAJSOUL_DEVICE_ID = "009ed7aa-d155-4904-b350-71476261167d";
+const CLIENT_VERSION_PREFIX = "WebGL_2022-";
+
+export function parseMajsoulClientVersion(pageHtml: string): string {
+  const productVersion =
+    /\bproductVersion\s*:\s*["'](\d+(?:\.\d+){2,3})["']/.exec(pageHtml)?.[1] ??
+    /\ben-WebGL-release-(\d+(?:\.\d+){2,3})(?:\(\d+\))?/.exec(pageHtml)?.[1];
+
+  if (!productVersion) {
+    throw new Error(
+      "Could not determine the Mahjong Soul client version from the live web client"
+    );
+  }
+
+  return `${CLIENT_VERSION_PREFIX}${productVersion}`;
+}
 
 function randomContract(): string {
   const chars =
@@ -40,16 +55,34 @@ function randomContract(): string {
 
 export class MajsoulApi {
   private static async getRes<T>(path: string): Promise<T> {
-    return (await fetch(path)).json() as Promise<T>;
+    const response = await fetch(path);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch Mahjong Soul resource ${path}: ${response.status} ${response.statusText}`
+      );
+    }
+    return response.json() as Promise<T>;
   }
 
-  public static async retrieveApiResources(): Promise<
-    ApiResources | undefined
-  > {
+  private static async getText(path: string): Promise<string> {
+    const response = await fetch(path);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch Mahjong Soul resource ${path}: ${response.status} ${response.statusText}`
+      );
+    }
+    return response.text();
+  }
+
+  public static async retrieveApiResources(): Promise<ApiResources> {
     const majsoulUrl = "https://mahjongsoul.game.yo-star.com/";
-    const versionInfo = await MajsoulApi.getRes<any>(
-      majsoulUrl + "version.json?randv=" + Math.random().toString().slice(2)
-    );
+    const cacheBuster = Math.random().toString().slice(2);
+    const [versionInfo, pageHtml] = await Promise.all([
+      MajsoulApi.getRes<any>(
+        majsoulUrl + "version.json?randv=" + cacheBuster
+      ),
+      MajsoulApi.getText(majsoulUrl + "?randv=" + cacheBuster),
+    ]);
     const resInfo = await MajsoulApi.getRes<any>(
       majsoulUrl + `resversion${versionInfo.version}.json`
     );
@@ -59,6 +92,7 @@ export class MajsoulApi {
     );
     return {
       version: versionInfo.version,
+      clientVersion: parseMajsoulClientVersion(pageHtml),
       pbVersion,
       serverList: { servers: ["engsbk.mahjongsoul.com"] },
       protobufDefinition: pbDef,
@@ -75,11 +109,10 @@ export class MajsoulApi {
   public readonly notifications: Observable<any>;
 
   constructor(private readonly apiResources: ApiResources) {
-    // The oauth2Auth 151 anti-bot gate requires Route.requestConnection to carry
-    // an extra field #6 = "Web" that the live liqi proto no longer declares
-    // (verified: dropping it flips oauth2Auth from success to error 151). Inject
-    // the field so protobufjs will encode it — the wire only cares about the
-    // field number + value, not the name we give it here.
+    // Route.requestConnection requires an extra field #6 = "Web" that the live
+    // liqi proto no longer declares. Without it, oauth2Auth returns code 151;
+    // the same code is also used for ERR_CLIENT_VERSION, so retain the server's
+    // message in login errors below. Inject the field so protobufjs encodes it.
     const defn = apiResources.protobufDefinition as any;
     const reqConnFields =
       defn?.nested?.lq?.nested?.ReqRequestConnection?.fields;
@@ -87,8 +120,7 @@ export class MajsoulApi {
       reqConnFields.web = { type: "string", id: 6 };
     }
     this.protobufRoot = Root.fromJSON(apiResources.protobufDefinition);
-    const resourcePatch = apiResources.version.split(".")[2];
-    this.clientVersion = `WebGL_2022-0.16.${resourcePatch}`;
+    this.clientVersion = apiResources.clientVersion;
     //console.log(`Client version: [${this.clientVersion}]`);
     this.codec = new Codec(this.protobufRoot);
 
@@ -190,7 +222,7 @@ export class MajsoulApi {
 
     if (respOauth2Auth.error) {
       throw new Error(
-        `oauth2Auth failed: ${JSON.stringify(respOauth2Auth.error)}`
+        `oauth2Auth failed for client ${this.clientVersion}: ${JSON.stringify(respOauth2Auth.error)}`
       );
     }
 

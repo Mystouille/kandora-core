@@ -132,7 +132,7 @@ export class MahjongSoulConnector implements ILeagueDataConnector<
     }
 
     const apiResources = await MajsoulApi.retrieveApiResources();
-    this.api = new MajsoulApi(apiResources!);
+    this.api = new MajsoulApi(apiResources);
     this.api.notifications.subscribe((n: any) => console.log(n));
     await this.api.init();
     try {
