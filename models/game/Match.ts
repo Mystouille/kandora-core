@@ -58,6 +58,12 @@ const MatchSchema = new Schema(
     ruleSet: { type: String, required: true, default: "tenhou-default" },
     seed: { type: Number, required: true },
     mode: { type: Schema.Types.Mixed, required: false },
+    spectatorDelayMs: {
+      type: Number,
+      required: true,
+      enum: [0, 300_000],
+      default: 0,
+    },
     status: {
       type: String,
       required: true,
