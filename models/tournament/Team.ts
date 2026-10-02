@@ -36,6 +36,13 @@ const teamSchema = new mongoose.Schema(
   {
     simpleName: { type: String, required: true },
     displayName: { type: String, required: true },
+    color: {
+      type: String,
+      required: false,
+      default: null,
+      lowercase: true,
+      match: /^#[0-9a-f]{6}$/i,
+    },
     roleId: { type: String, required: false },
     leagueId: { type: mongoose.Schema.Types.ObjectId, required: true },
     roster: { type: rosterSchema, required: true },
