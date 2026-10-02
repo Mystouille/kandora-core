@@ -18,11 +18,11 @@ import mongoose, { Schema } from "mongoose";
  * is the user who opened the review and owns the shareable `shortId`.
  *
  * The drawing is stored as a packed binary blob (see
- * `app/game/replay/reviewDrawing.ts` for the codec). Coordinates are
- * normalized to [0..1] so the same drawing renders correctly
- * regardless of the actual canvas size. The codec is versioned: new
- * drawings are written at 16-bit-per-axis precision (v2) while the
- * legacy 8-bit (v1) grid is still decoded for older reviews.
+ * `app/game/replay/reviewDrawing.ts` for the codec). New v3 strokes use
+ * signed focused-discard coordinates so they follow the same tiles
+ * across layouts. Legacy v1/v2 strokes retain table-normalized [0..1]
+ * coordinates; the v3 per-stroke tag also preserves these in mixed
+ * drawings. Existing stored drawings are not migrated.
  *
  * `shortId` is the publicly shareable handle. It is intentionally
  * decoupled from `_id` so we can rotate it later (e.g. revoke a leaked
