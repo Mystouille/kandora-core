@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
-import type { PicturePair } from "../../types/pictures";
+import {
+  DEFAULT_TEAM_PICTURE_CENTER_Y,
+  type TeamPicturePair,
+} from "../../types/pictures";
 
 export const TeamModelName = "Team";
 
@@ -7,6 +10,12 @@ const picturePairSchema = new mongoose.Schema(
   {
     fullPicture: { type: String, required: true },
     croppedPicture: { type: String, required: true },
+    summaryCenterY: {
+      type: Number,
+      min: 0,
+      max: 1,
+      default: DEFAULT_TEAM_PICTURE_CENTER_Y,
+    },
   },
   { _id: false }
 );
@@ -74,8 +83,7 @@ const teamSchema = new mongoose.Schema(
 const createTeamModel = () => mongoose.model(TeamModelName, teamSchema);
 export const TeamModel =
   (mongoose.models[TeamModelName] as
-    | ReturnType<typeof createTeamModel>
-    | undefined) ?? createTeamModel();
+    ReturnType<typeof createTeamModel> | undefined) ?? createTeamModel();
 export type DbTeam = mongoose.InferSchemaType<typeof teamSchema>;
 
 export interface Roster {
@@ -89,5 +97,5 @@ export type Team = Omit<DbTeam, "roster" | "finalsRoster" | "pictures"> & {
   _id: mongoose.Types.ObjectId;
   roster: Roster;
   finalsRoster: Roster | null;
-  pictures: PicturePair | null;
+  pictures: TeamPicturePair | null;
 };

@@ -11,3 +11,10 @@ export interface PicturePair {
   fullPicture: string;
   croppedPicture: string;
 }
+
+export const DEFAULT_TEAM_PICTURE_CENTER_Y = 0.5;
+
+export interface TeamPicturePair extends PicturePair {
+  /** Vertical focus line in fullPicture, normalized from 0 (top) to 1 (bottom). */
+  summaryCenterY?: number;
+}
