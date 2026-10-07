@@ -3,6 +3,7 @@ export enum Ruleset {
   WRC = "WRC",
   ONLINE = "ONLINE",
   MLEAGUE = "MLEAGUE",
+  JPML = "JPML",
   INDONESIAN = "INDONESIAN",
 }
 

@@ -12,6 +12,7 @@ const rulesetList = [
   Ruleset.WRC,
   Ruleset.ONLINE,
   Ruleset.MLEAGUE,
+  Ruleset.JPML,
   Ruleset.INDONESIAN,
 ];
 const platformList = [
@@ -41,6 +42,7 @@ const leagueSchema = new mongoose.Schema({
           enum: rulesetList,
           required: true,
         },
+        gameRulePresetId: { type: String, required: false },
         isTeamMode: { type: Boolean, required: true, default: true },
       },
       { _id: false }
