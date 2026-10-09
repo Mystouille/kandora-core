@@ -45,6 +45,12 @@ const ReplayLogSchema = new Schema(
       required: false,
     },
     ruleSet: { type: String, required: true },
+    rulesFamily: {
+      type: String,
+      required: false,
+      enum: ["riichi", "mcr"],
+      default: "riichi",
+    },
     mode: { type: Schema.Types.Mixed, required: false },
     ruleSetDetails: { type: Schema.Types.Mixed, required: false },
     startedAt: { type: Number, required: true },
